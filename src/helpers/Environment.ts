@@ -79,7 +79,7 @@ export class EnvHelper {
         } else {
           ALCHEMY_ID_LIST = ["testnet"];
         }
-        uriPath = "https://speedy-nodes-nyc.moralis.io/cfe9228e4c2f75a9e06337c7/bsc/";
+        uriPath = "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/bsc/";
         break;
       case 56:
         if (

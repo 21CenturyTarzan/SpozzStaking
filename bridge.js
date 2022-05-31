@@ -147,21 +147,21 @@ function g(e, t = 9, n = ".") {
 }
 const it = {
     "4": {
-        provider: "https://speedy-nodes-nyc.moralis.io/8e0f19163628dfc14c27bba6/eth/rinkeby",
+        provider: "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/eth/rinkeby",
         scan: "https://rinkeby.etherscan.io/"
     },
     "97": {
-        provider: "https://speedy-nodes-nyc.moralis.io/8e0f19163628dfc14c27bba6/bsc/testnet",
+        provider: "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/bsc/testnet",
         scan: "https://testnet.bscscan.com/"
     }
 }
 const pt = {
     "1": {
-        provider: "https://speedy-nodes-nyc.moralis.io/8e0f19163628dfc14c27bba6/eth/mainnet",
+        provider: "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/eth/mainnet",
         scan: "https://etherscan.io/"
     },
     "56": {
-        provider: "https://speedy-nodes-nyc.moralis.io/8e0f19163628dfc14c27bba6/bsc/mainnet",
+        provider: "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/bsc/mainnet",
         scan: "https://bscscan.com/"
     }
 };

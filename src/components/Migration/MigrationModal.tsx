@@ -85,18 +85,7 @@ function MigrationModal({ open, handleClose }: { open: boolean; handleClose: any
   let rows = [];
   let isMigrationComplete = useAppSelector(state => state.account.isMigrationComplete);
 
-  const onSeekApproval = (token: string) => {
-    dispatch(
-      changeMigrationApproval({
-        address,
-        networkID: networkId,
-        provider,
-        token: token.toLowerCase(),
-        displayName: token,
-        insertName: true,
-      }),
-    );
-  };
+  const onSeekApproval = (token: string) => {  };
 
   const onMigrate = () => dispatch(migrateAll({ provider, address, networkID: networkId }));
   const currentIndex = useAppSelector(state => Number(state.app.currentIndexV1!));

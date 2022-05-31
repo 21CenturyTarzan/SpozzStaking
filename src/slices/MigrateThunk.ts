@@ -134,25 +134,7 @@ export const migrateCrossChainWSOHM = createAsyncThunk(
       dispatch(error("Please connect your wallet!"));
       return;
     }
-    const signer = provider.getSigner();
-    const migrator = CrossChainMigrator__factory.connect(addresses[networkID].MIGRATOR_ADDRESS, signer);
-    let migrateTx: ethers.ContractTransaction | undefined;
-    try {
-      migrateTx = await migrator.migrate(ethers.utils.parseUnits(value, "ether"));
-      const text = `Migrate wsOHM Tokens`;
-      const pendingTxnType = `migrate`;
-      if (migrateTx) {
-        dispatch(fetchPendingTxns({ txnHash: migrateTx.hash, text, type: pendingTxnType }));
-        await migrateTx.wait();
-        dispatch(info("Successfully migrated tokens"));
-      }
-    } catch (e: unknown) {
-      dispatch(error((e as IJsonRPCError).message));
-    } finally {
-      if (migrateTx) {
-        dispatch(clearPendingTxn(migrateTx.hash));
-      }
-    }
+    
     // go get fresh balances
     dispatch(getBalances({ address, provider, networkID }));
   },
