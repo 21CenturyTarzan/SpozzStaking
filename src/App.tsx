@@ -6,19 +6,17 @@ import { useMediaQuery } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import useTheme from "./hooks/useTheme";
-import useBonds, { IAllBondData } from "./hooks/Bonds";
 import { useAddress, useWeb3Context } from "./hooks/web3Context";
 import useSegmentAnalytics from "./hooks/useSegmentAnalytics";
 import { segmentUA } from "./helpers/userAnalyticHelpers";
 import { shouldTriggerSafetyCheck } from "./helpers";
 
-import { calcBondDetails, calcTokenDetails } from "./slices/BondSlice";
 import { loadAppDetails } from "./slices/AppSlice";
 import { loadAccountDetails } from "./slices/AccountSlice";
 import { getZapTokenBalances } from "./slices/ZapSlice";
 import { info } from "./slices/MessagesSlice";
 import { ethers } from "ethers";
-import { Airdrop, Admin } from "./views";
+import { Stake, Admin } from "./views";
 import Sidebar from "./components/Sidebar/Sidebar.jsx";
 import TopBar from "./components/TopBar/TopBar.jsx";
 import CallToAction from "./components/CallToAction/CallToAction";
@@ -44,7 +42,7 @@ const useStyles = makeStyles(theme => ({}));
 
 function App() {
   useSegmentAnalytics();
-  useGoogleAnalytics();
+  // useGoogleAnalytics();
   const location = useLocation();
   const dispatch = useDispatch();
   const [theme, toggleTheme, mounted] = useTheme();
@@ -72,9 +70,6 @@ function App() {
 
   const [walletChecked, setWalletChecked] = useState(false);
   const networkId = useAppSelector(state => state.network.networkId);
-
-  // TODO (appleseed-expiredBonds): there may be a smarter way to refactor this
-  const { bonds, lpTokens, expiredBonds } = useBonds(networkId);
 
   async function loadDetails(whichDetails: string) {
     // NOTE (unbanksy): If you encounter the following error:
@@ -274,8 +269,8 @@ function App() {
             oldAssetsEnoughToMigrate && <CallToAction setMigrationModalOpen={setMigrationModalOpen} />}
 
           <Switch>
-            <Route path="/airdrop">
-                <Airdrop />
+            <Route path="/stake">
+                <Stake />
             </Route>
             <Route path="/network">
               <ChangeNetwork />
@@ -284,7 +279,7 @@ function App() {
               <Admin />
             </Route>
             <Route exact path="/">
-              <Redirect to="airdrop" />
+              <Redirect to="stake" />
             </Route>
           </Switch>
         </div>

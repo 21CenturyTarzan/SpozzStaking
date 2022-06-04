@@ -254,50 +254,13 @@ export const calculateUserBondDetails = createAsyncThunk(
       return {
         bond: "",
         displayName: "",
-        bondIconSvg: "",
-        isLP: false,
-        allowance: 0,
-        balance: "0",
-        interestDue: 0,
-        bondMaturationBlock: 0,
-        pendingPayout: "",
       };
     }
-    // dispatch(fetchBondInProgress());
-
-    // Calculate bond details.
-    const bondContract = bond.getContractForBond(networkID, provider);
-    const reserveContract = bond.getContractForReserve(networkID, provider);
-
-    let pendingPayout, bondMaturationBlock;
-
-    const bondDetails = await bondContract.bondInfo(address);
-    let interestDue: BigNumberish = Number(bondDetails.payout.toString()) / Math.pow(10, 9);
-    bondMaturationBlock = +bondDetails.vesting + +bondDetails.lastBlock;
-    pendingPayout = await bondContract.pendingPayoutFor(address);
-
-    let allowance,
-      balance = BigNumber.from(0);
-    allowance = await reserveContract.allowance(address, bond.getAddressForBond(networkID) || "");
-    // balance = await reserveContract.balanceOf(address);
-    //const dec = Number(BigNumber.from(await reserveContract.decimals()).toString());
-    const dec = Number(await (await reserveContract.decimals()).toString());
-    console.log("[tz]: decimals ===>", dec);
-    // const balanceVal = Number(getDisplayBalance(await reserveContract.balanceOf(address), dec));
-    // formatEthers takes BigNumber => String
-    // const balanceVal = ethers.utils.formatEther(balance);
-    const balanceVal = Number(getDisplayBalance(await reserveContract.balanceOf(address), dec));
+    
     // balanceVal should NOT be converted to a number. it loses decimal precision
     return {
       bond: bond.name,
       displayName: bond.getTokenName(networkID),
-      bondIconSvg: bond.bondIconSvg,
-      isLP: bond.isLP,
-      allowance: Number(allowance.toString()),
-      balance: balanceVal,
-      interestDue,
-      bondMaturationBlock,
-      pendingPayout: ethers.utils.formatUnits(pendingPayout, "gwei"),
     };
   },
 );

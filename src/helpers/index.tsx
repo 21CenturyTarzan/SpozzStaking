@@ -8,7 +8,6 @@ import { SvgIcon } from "@material-ui/core";
 import { ReactComponent as OhmImg } from "../assets/tokens/token_OHM.svg";
 import { ReactComponent as SOhmImg } from "../assets/tokens/token_sOHM.svg";
 
-import { tazor_native_token, taz_native_token, ohm_weth, ohm_daiOld } from "./AllBonds";
 import { JsonRpcSigner, StaticJsonRpcProvider } from "@ethersproject/providers";
 import { IBaseAsyncThunk } from "src/slices/interfaces";
 import { PairContract, RedeemHelper } from "../typechain";
@@ -27,54 +26,11 @@ export async function getMarketPrice({ networkID, provider }: IBaseAsyncThunk) {
   // const tazor_native_address = tazor_native_token.getAddressForReserve(networkID);
   // const pairContract = new ethers.Contract(tazor_native_address || "", PairContractABI, provider) as PairContract;
   // const reserves = await pairContract.getReserves();
-  if (networkID == 56 || networkID == 97) {
-    const tazor_native_contract = tazor_native_token.getContractForReserve(networkID, provider);
-    const reserves = await tazor_native_contract.getReserves();
-    const native_usdt_contract = tazor_native_token.getContractStableNative(networkID, provider);
-    const reserves2 = await native_usdt_contract.getReserves();
-    const nativeTokenPrice = Number(reserves2[0].toString()) / Number(reserves2[1].toString());
-    console.log("native token price", nativeTokenPrice);
-    console.log("tarzan:stable token===>", Number(reserves2[0].toString()));
-    console.log("tarzan:native token===>", Number(reserves2[1].toString()));
-    let marketPrice = Number(reserves[1].toString()) / Number(reserves[0].toString()) / 10 ** 9;
-    console.log("tarzan:tazor===>", Number(reserves[0].toString()) / 10 ** 9);
-    console.log("tarzan:native token===>", Number(reserves[1].toString()) / 10 ** 18);
-    marketPrice = marketPrice * nativeTokenPrice;
-    return marketPrice;
-  } else {
-    const tazor_native_contract = tazor_native_token.getContractForReserve(networkID, provider);
-    const reserves = await tazor_native_contract.getReserves();
-
-    const native_usdt_contract = tazor_native_token.getContractStableNative(networkID, provider);
-    const reserves2 = await native_usdt_contract.getReserves();
-    const nativeTokenPrice = (10 ** 12 * Number(reserves2[0].toString())) / Number(reserves2[1].toString());
-    console.log("native token price", nativeTokenPrice);
-    console.log("tarzan:stable token===>", Number(reserves2[0].toString()));
-    console.log("tarzan:native token===>", Number(reserves2[1].toString()));
-    let marketPrice = Number(reserves[1].toString()) / Number(reserves[0].toString()) / 10 ** 9;
-    console.log("tarzan:tazor===>", Number(reserves[0].toString()) / 10 ** 9);
-    console.log("tarzan:native token===>", Number(reserves[1].toString()) / 10 ** 18);
-    marketPrice = marketPrice * nativeTokenPrice;
-    return marketPrice;
-  }
+  return 0;
 }
 
 export async function getTazorMarketCap({ networkID, provider }: IBaseAsyncThunk) {
-  const tazor_dai_address = tazor_native_token.getAddressForReserve(networkID);
-  const pairContract = new ethers.Contract(tazor_dai_address || "", PairContractABI, provider) as PairContract;
-  const reserves = await pairContract.getReserves();
-
-  const native_usdt_contract = tazor_native_token.getContractStableNative(networkID, provider);
-  const reserves2 = await native_usdt_contract.getReserves();
-  if (networkID == 56 || networkID == 97) {
-    const nativeTokenPrice = Number(reserves2[0].toString()) / Number(reserves2[1].toString());
-    const marketCap = (Number(reserves[1].toString()) * 2) / 10 ** 18;
-    return marketCap * nativeTokenPrice;
-  } else {
-    const nativeTokenPrice = (10 ** 12 * Number(reserves2[0].toString())) / Number(reserves2[1].toString());
-    const marketCap = (Number(reserves[1].toString()) * 2) / 10 ** 18;
-    return marketCap * nativeTokenPrice;
-  }
+  return 0
 }
 
 /**
@@ -82,65 +38,31 @@ export async function getTazorMarketCap({ networkID, provider }: IBaseAsyncThunk
  * @returns Number like 333.33
  */
 export async function getTazMarketPrice({ networkID, provider }: IBaseAsyncThunk) {
-  const taz_native_contract = taz_native_token.getContractForReserve(networkID, provider);
-  const reserves = await taz_native_contract.getReserves();
-
-  const native_usdt_contract = taz_native_token.getContractStableNative(networkID, provider);
-  const reserves2 = await native_usdt_contract.getReserves();
-  if (networkID == 56 || networkID == 97) {
-    const nativeTokenPrice = Number(reserves2[0].toString()) / Number(reserves2[1].toString());
-    let marketPrice = Number(reserves[1].toString()) / Number(reserves[0].toString()) / 10 ** 9;
-    marketPrice = marketPrice * nativeTokenPrice;
-    return marketPrice;
-  } else {
-    const nativeTokenPrice = (10 ** 12 * Number(reserves2[0].toString())) / Number(reserves2[1].toString());
-    let marketPrice = Number(reserves[1].toString()) / Number(reserves[0].toString()) / 10 ** 9;
-    marketPrice = marketPrice * nativeTokenPrice;
-    return marketPrice;
-  }
+    return 0;
 }
 
 export async function getTazMarketCap({ networkID, provider }: IBaseAsyncThunk) {
-  const taz_dai_address = taz_native_token.getAddressForReserve(networkID);
-  const pairContract = new ethers.Contract(taz_dai_address || "", PairContractABI, provider) as PairContract;
-  const reserves = await pairContract.getReserves();
-
-  const native_usdt_contract = taz_native_token.getContractStableNative(networkID, provider);
-  const reserves2 = await native_usdt_contract.getReserves();
-  if (networkID == 56 || networkID == 97) {
-    const nativeTokenPrice = Number(reserves2[0].toString()) / Number(reserves2[1].toString());
-    const marketCap = (Number(reserves[1].toString()) * 2) / 10 ** 18;
-    return marketCap * nativeTokenPrice;
-  } else {
-    const nativeTokenPrice = (10 ** 12 * Number(reserves2[0].toString())) / Number(reserves2[1].toString());
-    const marketCap = (Number(reserves[1].toString()) * 2) / 10 ** 18;
-    return marketCap * nativeTokenPrice;
-  }
+  return 0;
 }
 
 export async function getMarketPriceFromWeth() {
-  const mainnetProvider = NodeHelper.getMainnetStaticProvider();
-  // v2 price
-  const ohm_weth_address = ohm_weth.getAddressForReserve(1);
-  const wethBondContract = ohm_weth.getContractForBond(1, mainnetProvider);
-  const pairContract = new ethers.Contract(ohm_weth_address || "", PairContractABI, mainnetProvider) as PairContract;
-  const reserves = await pairContract.getReserves();
+  // const mainnetProvider = NodeHelper.getMainnetStaticProvider();
+  // // v2 price
+  // const ohm_weth_address = ohm_weth.getAddressForReserve(1);
+  // const wethBondContract = ohm_weth.getContractForBond(1, mainnetProvider);
+  // const pairContract = new ethers.Contract(ohm_weth_address || "", PairContractABI, mainnetProvider) as PairContract;
+  // const reserves = await pairContract.getReserves();
 
-  // since we're using OHM/WETH... also need to multiply by weth price;
-  const wethPriceBN: BigNumber = await wethBondContract.assetPrice();
-  const wethPrice = Number(wethPriceBN.toString()) / Math.pow(10, 8);
-  const marketPrice = (Number(reserves[1].toString()) / Number(reserves[0].toString()) / 10 ** 9) * wethPrice;
-  return marketPrice;
+  // // since we're using OHM/WETH... also need to multiply by weth price;
+  // const wethPriceBN: BigNumber = await wethBondContract.assetPrice();
+  // const wethPrice = Number(wethPriceBN.toString()) / Math.pow(10, 8);
+  // const marketPrice = (Number(reserves[1].toString()) / Number(reserves[0].toString()) / 10 ** 9) * wethPrice;
+  return 0;
 }
 
 export async function getV1MarketPrice() {
-  const mainnetProvider = NodeHelper.getMainnetStaticProvider();
-  // v1 price
-  const ohm_dai_address = ohm_daiOld.getAddressForReserve(1);
-  const pairContract = new ethers.Contract(ohm_dai_address || "", PairContractABI, mainnetProvider) as PairContract;
-  const reserves = await pairContract.getReserves();
-  const marketPrice = Number(reserves[1].toString()) / Number(reserves[0].toString()) / 10 ** 9;
-  return marketPrice;
+  
+  return 0;
 }
 
 /**

@@ -1,7 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import accountReducer from "./slices/AccountSlice";
 import networkReducer from "./slices/NetworkSlice";
-import bondingReducer from "./slices/BondSlice";
 import appReducer from "./slices/AppSlice";
 import pendingTransactionsReducer from "./slices/PendingTxnsSlice";
 import poolDataReducer from "./slices/PoolThunk";
@@ -17,7 +16,6 @@ const store = configureStore({
     // reducer imported from the slice file
     account: accountReducer,
     network: networkReducer,
-    bonding: bondingReducer,
     app: appReducer,
     pendingTransactions: pendingTransactionsReducer,
     poolData: poolDataReducer,

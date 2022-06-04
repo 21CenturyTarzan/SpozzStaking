@@ -9,8 +9,9 @@
     // margin: 25px !important;
     // padding: 25px !important;
     min-width: 150px !important;
-    // min-height: 40px !important;
-    // width: 200px;
+    @media (max-width: 600px) {
+      min-width: 100px !important;
+    }
     &#hamburger {
       padding: 11px !important;
     }
@@ -60,3 +61,16 @@
     transition: all 0.33s ease-out;
   }
 }
+
+// .searchbar {
+//   display: "flex";
+//   justify-Content: "center";
+//   background: "#FFFFFF";
+//   fontSize: "16px";
+//   fontWeight: "400";
+//   boxShadow: "2px 2px 9px rgba(0, 0, 0, 0.25)";
+//   borderRadius: "50px";
+//   minWidth: "150px";
+//   alignSelf: "center";
+//   minHeight: "40px";
+// },

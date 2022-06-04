@@ -58,6 +58,15 @@ const useStyles = makeStyles(theme => ({
     letterSpacing: "0.18em",
     color: "#6D83FB",
   },
+  logoTitlePhone: {
+    fontFamily: "Montserrat",
+    fontStyle: "normal",
+    fontweight: "400",
+    fontSize: "25px",
+    lineHeight: "44px",
+    letterSpacing: "0.18em",
+    color: "#6D83FB",
+  },
   buttonProp: {
     paddingLeft: "20px",
     fontFamily: 'Montserrat',
@@ -80,12 +89,23 @@ const useStyles = makeStyles(theme => ({
     alignSelf: "center",
     minHeight: "40px"
   },
+  searchbarPhone: {
+    display: "flex",
+    justifyContent: "center",
+    background: "#FFFFFF",
+    fontSize: "0px",
+    boxShadow: "2px 2px 9px rgba(0, 0, 0, 0.25)",
+    borderRadius: "50px",
+    alignSelf: "center",
+    minHeight: "40px",
+    minWidth: "40px"
+  },
 }));
 
 function TopBar({ theme, toggleTheme, handleDrawerToggle }) {
   const classes = useStyles();
   const networkName = useSelector(state => state.network.networkName);
-
+  const isSmallScreen = useMediaQuery("(max-width: 600px)");
   const [isActive] = useState();
 
   const checkPage = useCallback((match, location, page) => {
@@ -115,8 +135,8 @@ function TopBar({ theme, toggleTheme, handleDrawerToggle }) {
     return (
       <div className={classes.logo}>
         <img src="/logo192.png" height="64px" />
-        <span className={classes.logoTitle}>|SPOZZ</span>
-        <Menu />
+        <span className={` ${!isSmallScreen? classes.logoTitle : classes.logoTitlePhone} `}>|SPOZZ</span>
+        {!isSmallScreen && <Menu />}
       </div>
     );
   };
@@ -194,13 +214,13 @@ function TopBar({ theme, toggleTheme, handleDrawerToggle }) {
     }
 
     return (
-      <div className={classes.searchbar}>
+      <div className={` ${ isSmallScreen? classes.searchbarPhone : classes.searchbar}` } >
         <div style={{ display: "flex", justifyContent: "center", flexDirection: "column" }}>
           <div>
             <Link component={NavLink} to="/network">
               <div style={{ color: "black", display: "flex" }}>
-                <div style={{display: "flex"}}><img src={getNetworkIcon()} width="25px" height="25px" /></div>
-                <div style={{alignSelf: "center", marginLeft: "5px"}}>{networkName}</div>
+                <div style={{display: "flex", margin: "5px"}}><img src={getNetworkIcon()} width="25px" height="25px" /></div>
+                <div style={{alignSelf: "center"}}>{networkName}</div>
               </div>
             </Link>
           </div>

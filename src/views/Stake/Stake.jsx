@@ -46,7 +46,7 @@ import avalanche from "../../assets/tokens/AVAX.svg";
 import polygon from "../../assets/tokens/polygon.svg";
 import binance from "../../assets/binance.png";
 
-import "./airdrop.scss";
+import "./stake.scss";
 
 const airdropUnits = {
   avatar: 50,
@@ -62,7 +62,7 @@ const spozzAirdropInfo = {
 }
 
 // export function Airdrop({ srcSwapBalance, setSrcSwapCallback }) {
-export default function Airdrop() {
+export default function Stake() {
   const dispatch = useDispatch();
   const { connect, disconnect, connected, web3, provider, address, chainID, chainChanged } = useWeb3Context();
 
