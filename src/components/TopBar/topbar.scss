@@ -10,7 +10,8 @@
     // padding: 25px !important;
     min-width: 150px !important;
     @media (max-width: 600px) {
-      min-width: 100px !important;
+      max-width: 100px !important;
+      margin: 20px 5px;
     }
     &#hamburger {
       padding: 11px !important;

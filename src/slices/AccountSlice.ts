@@ -22,12 +22,6 @@ export const getBalances = createAsyncThunk(
   },
 );
 
-interface NFTItem {
-  address: string;
-  type: boolean;
-  id: string;
-}
-
 /////////////////////
 export const getUserNFTBalance = createAsyncThunk(
   "account/getUserNFTBalance",

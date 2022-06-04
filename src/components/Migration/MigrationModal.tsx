@@ -88,12 +88,11 @@ function MigrationModal({ open, handleClose }: { open: boolean; handleClose: any
   const onSeekApproval = (token: string) => {  };
 
   const onMigrate = () => dispatch(migrateAll({ provider, address, networkID: networkId }));
-  const currentIndex = useAppSelector(state => Number(state.app.currentIndexV1!));
-
+  const currentIndex = 1;
   const currentOhmBalance = useAppSelector(state => Number(state.account.balances.ohmV1));
   const currentSOhmBalance = useAppSelector(state => Number(state.account.balances.sohmV1));
   const currentWSOhmBalance = useAppSelector(state => Number(state.account.balances.wsohm));
-  const wsOhmPrice = useAppSelector(state => state.app.marketPrice! * Number(state.app.currentIndex!));
+  const wsOhmPrice = useAppSelector(state => state.app.marketPrice!);
 
   const marketPrice = useAppSelector(state => {
     return state.app.marketPrice;
