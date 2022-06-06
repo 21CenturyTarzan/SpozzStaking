@@ -51,7 +51,7 @@ export interface IBaseAddressAsyncThunk extends IBaseAsyncThunk {
 }
 
 export interface IBridgeAsyncThunk extends IBaseAsyncThunk {
-  readonly secondNetworkID: NetworkID;
+  
 }
 
 export interface IZapAsyncThunk extends IBaseAddressAsyncThunk {

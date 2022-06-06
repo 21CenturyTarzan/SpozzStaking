@@ -21,6 +21,7 @@ import { NodeHelper } from "../helpers/NodeHelper";
  * @returns Number like 333.33
  */
 export async function getMarketPrice({ networkID, provider }: IBaseAsyncThunk) {
+  console.log("[tz]: getting marketprice calling in helper/index");
   // const mainnetProvider = NodeHelper.getMainnetStaticProvider();
   // v2 price
   // const tazor_native_address = tazor_native_token.getAddressForReserve(networkID);

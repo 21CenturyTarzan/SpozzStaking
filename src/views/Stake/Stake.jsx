@@ -17,19 +17,16 @@ import {
   DialogTitle,
   useMediaQuery,
   InputAdornment,
-  Zoom, Container,
+  Zoom,
 } from "@material-ui/core";
 
-import SwapVertIcon from "@material-ui/icons/SwapVert";
-import SwapHorizIcon from "@material-ui/icons/SwapHoriz";
-import InfoTooltipMulti from "../../components/InfoTooltip/InfoTooltipMulti";
 import TabPanel from "../../components/TabPanel";
 import CardHeader from "../../components/CardHeader/CardHeader";
 import CustomInput from "../../components/CustomInput/CustomInput";
 import { NavLink } from "react-router-dom";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { switchNetwork, initializeNetwork } from "../../slices/NetworkSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@material-ui/lab";
@@ -38,8 +35,11 @@ import { useWeb3Context } from "../../hooks/web3Context";
 import { useAppSelector } from "src/hooks";
 import { error, info } from "../../slices/MessagesSlice";
 import { loadAccountDetails } from "../../slices/AccountSlice";
-import { airdropSpozz } from "../../slices/AirdropThunk";
+import { approveSpozz, changeStake, claimSpozz } from "../../slices/StakeThunk";
 import { isPendingTxn, txnButtonText } from "src/slices/PendingTxnsSlice";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import "bootstrap/dist/css/bootstrap.min.css";
 import ethereum from "../../assets/tokens/wETH.svg";
 import arbitrum from "../../assets/arbitrum.png";
 import avalanche from "../../assets/tokens/AVAX.svg";
@@ -66,43 +66,58 @@ export default function Stake() {
   const dispatch = useDispatch();
   const { connect, disconnect, connected, web3, provider, address, chainID, chainChanged } = useWeb3Context();
 
-  const [srcSwapBalance, setSrcSwapBalance] = useState(0);
   const [open, setOpen] = useState(false);
-  const [isSwapButtonClicked, setSwapButtonClicked] = useState(false);
   const isSmallScreen = useMediaQuery("(max-width: 650px)");
   const isVerySmallScreen = useMediaQuery("(max-width: 379px)");
 
   // const [dstSwapBalance, setDstSwapBalance] = useState(0);
-  const srcSpotBalance = useAppSelector(state => {
-    return state.account.balances && state.account.balances.srcSpotBalance;
+  const spozzBalancesE = useAppSelector(state => {
+    return state.account.balances && state.account.balances.spozzBalancesE;
   });
+
+  const spozzBalancesP = useAppSelector(state => {
+    return state.account.balances && state.account.balances.spozzBalancesP;
+  });
+
+  const spozzBalancesB = useAppSelector(state => {
+    return state.account.balances && state.account.balances.spozzBalancesB;
+  });
+
+  const stakedBalancesE = useAppSelector(state => {
+    return state.account.balances && state.account.balances.stakedBalancesE;
+  });
+
+  const stakedBalancesP = useAppSelector(state => {
+    return state.account.balances && state.account.balances.stakedBalancesP;
+  });
+
+  const stakedBalancesB = useAppSelector(state => {
+    return state.account.balances && state.account.balances.stakedBalancesB;
+  });
+
+  const rewardBalancesE = useAppSelector(state => {
+    return state.account.balances && state.account.balances.rewardBalancesE;
+  });
+
+  const rewardBalancesP = useAppSelector(state => {
+    return state.account.balances && state.account.balances.rewardBalancesP;
+  });
+
+  const rewardBalancesB = useAppSelector(state => {
+    return state.account.balances && state.account.balances.rewardBalancesB;
+  });
+  
 
   const balances = useAppSelector(state => {
     return state.account.balances && state.account.balances;
   });
 
-  const avatarOwned = useAppSelector(state => {
-    return state.account.balances && state.account.balances.avatarBalance;
+  const allowance = useAppSelector(state => {
+    return state.account.balances && state.account.balances.stakeAllowance;
   });
 
-  const nftListed = useAppSelector(state => {
-    return state.account.balances && state.account.balances.nftBalances && state.account.balances.nftBalances.length;
-  });
-
-  const specialNFT = useAppSelector(state => {
-    return state.account.balances && state.account.balances.xnftBalances && state.account.balances.xnftBalances.length;
-  });
-
-  const isWhitelist = useAppSelector(state => {
-    return state.account.balances && state.account.balances.isWhitelist;
-  });
-
-  const isReceived = useAppSelector(state => {
-    return state.account.balances && state.account.balances.isReceived;
-  });
-
-  const airdropBalance = useAppSelector(state => {
-    return state.account.balances && state.account.balances.airdropBalance;
+  const claimable = useAppSelector(state => {
+    return state.account.balances && state.account.balances.claimable;
   });
 
   const pendingTransactions = useAppSelector(state => {
@@ -124,45 +139,32 @@ export default function Stake() {
   useEffect(() => {
     // don't load ANY details until wallet is Checked
     dispatch(initializeNetwork({ provider: provider }));
-
-    // const id = networkList.findIndex(item => item.id == networkId);
-    // console.log("network ID, index", networkId, id);
-
-    // if (networkId == -1) return;
-
-    // if (id == -1) {
-    //   // dispatch(error("Unsupported Network. Please Switch Network"));
-    //   dispatch(switchNetwork({ provider: provider, networkId: networkList[0].id }));
-    //   return;
-    // }
-    // setSrcNetIndex(id);
-
-    // let list = [];
-    // networkList.map((item, index) => {
-    //   if (id != index) list.push(item);
-    // });
-    // setDestinationNetworkList(list);
   }, [chainChanged, networkId, chainID, connected]);
 
-  const onClaim = async () => {
-    let nfts = [];
-    let xnfts = [];
-    let ids = [];
-    let xids = [];
+  const hasAllowance = useCallback(
+    () => {
+      return allowance > 0;
+    },
+    [allowance],
+  )
 
-
-    nfts.push(balances.nftBalances[0].address);
+  const onApprove = async () => {
     await dispatch(
-      airdropSpozz({
-        nfts,
-        xnfts,
-        ids,
-        xids,
-        provider,
-        address,
-        networkID: networkId,
-      }));
+      approveSpozz({ provider, address, networkID: networkId }));
   }
+
+  const onChangeStake = async (action, quantity) => {
+    if (isNaN(quantity) || quantity === 0 || quantity === "" || !quantity) {
+      return dispatch(error("Please enter a value!"));
+    }
+    await dispatch(changeStake({ address, action, value: quantity.toString(), provider, networkID: chainID }));
+
+    setOpen(false);
+  };
+
+  const onClaimReward = async action => {
+    await dispatch(claimSpozz({ address, action, value: quantity.toString(), provider, networkID: chainID }));
+  };
 
   const onSrcNetworkChanged = id => {
     if (!connected) return dispatch(info("Please connect to wallet"));
@@ -188,241 +190,213 @@ export default function Stake() {
 
   const totalEarned = () => {
     let total = 0;
-    if (nftListed)
-      total += nftListed * airdropUnits.nft;
-    if (specialNFT)
-      total += specialNFT * airdropUnits.specialNFT;
-    if (avatarOwned)
-      total += avatarOwned * airdropUnits.avatar;
-    if (isWhitelist)
-      total += airdropUnits.whitelist;
-
     return total;
   }
-  return (
-    // <Paper className="ohm-card">
-    <Grid container spacing={2}>
-      <Grid item md={12} lg={12} >
-        <Grid container spacing={2}>
-          <Grid item xs={0} sm={0} md={1} lg={3} />
-          <Grid item xs={12} sm={12} md={10} lg={6}>
-            <div className="title-small">
-              {"Presale & Airdropfor"}
-            </div>
-            <div />
-            <div className="title-medium">
-              SPOZZ TOKEN
-            </div>
-            <hr />
-            {/* <div className="title-big">
-              Airdrop Amount
-            </div> */}
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid item lg={12} >
-        <Grid container spacing={2}>
 
-          <Grid item xs={0} sm={0} md={1} lg={3} />
-          <Grid item xs={12} sm={12} md={10} lg={6} style={{ display: "flex" }}>
-            <Grid container spacing={2} className="card-container">
-              <Grid item xs={12} sm={12} md={12} lg={12}>
-                <div className="title-big">
-                  SPOZZ TOKEN Info
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={3} lg={3} className="grid-item"  >
-                <div className="label-container">
-                  <span className="label-title">Total Supply</span>
-                  <div className="label-value">
-                    <span>400,000 SPOZZ</span>
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={3} lg={3} className="grid-item"  >
-                <div className="label-container">
-                  <span className="label-title">SPOZZ Price</span>
-                  <div className="label-value">
-                    <span>$0.01</span>
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={3} lg={3} className="grid-item"  >
-                <div className="label-container">
-                  <span className="label-title">Airrdop Amount</span>
-                  <div className="label-value">
-                    <span>10%</span>
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={3} lg={3} className="grid-item"  >
-                <div className="label-container">
-                  <span className="label-title">Whitelisted NFT</span>
-                  <div className="label-value">
-                    <span>130</span>
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={6} lg={6} className="grid-item"  >
-                <div className="label-container">
-                  <span className="label-title">Special NFT</span>
-                  <div className="label-value">
-                    <span>5</span>
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={6} lg={6} className="grid-item"  >
-                <div className="label-container">
-                  <span className="label-title">Whitelist Member</span>
-                  <div className="label-value">
-                    <span>1000</span>
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={4} sm={64} md={4} lg={4} className="grid-item"  >
-                <div>Ethereum Sold 5679/10000 </div>
-                <div className="progressbar-container">
-                  <CircularProgressbar
-                    value={45}
-                    text={`45%`}
-                  />
-                </div>
-              </Grid>
-              <Grid item xs={4} sm={4} md={4} lg={4} className="grid-item"  >
-                <div>Baince Sold 5679/10000 </div>
-                <div className="progressbar-container">
-                  <CircularProgressbar value={29} text={`29%`} />
-                </div>
-              </Grid>
-              <Grid item xs={4} sm={4} md={4} lg={4} className="grid-item"  >
-                <div>Polygon Sold 5679/10000</div>
-                <div className="progressbar-container">
-                  <CircularProgressbar value={72} text={`72.45%`} />
-                </div>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid item lg={12} >
+  const SwapAlertDialog = ({setOpen}) => {
+    const [quantity, setQuantity] = useState("");
+    return (
+      <div style={{ background: "#ff0 !important" }}>
+        <Dialog
+          open={open}
+          onClose={()=>{close()}}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title" style={{ textAlign: "center" }}>
+            <span style={{ color: "#fff", fontSize: "22px" }}>Spozz Staking Club</span>
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              <Typography style={{ color: "#fff", fontSize: "20px", margin: "15px 40px" }}>Please Input Spozz Amount.</Typography>
+              <FormControl variant="outlined" color="primary" style={{width: "100%"}}>
+                <OutlinedInput
+                  id="amount-input"
+                  type="number"
+                  placeholder="Enter an amount"
+                  className="stake-input"
+                  value={quantity}
+                  onChange={e => setQuantity(e.target.value)}
+                  labelWidth={0}
+                />
+              </FormControl>
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button variant="outlined" color="secondary" onClick={()=>{setOpen(false);}}>
+              Cancel
+            </Button>
+            <Button variant="outlined" color="secondary" onClick={()=>{onChangeStake("stake", quantity);}}>
+              Stake
+            </Button>
+            <Button variant="outlined" color="secondary" onClick={()=>{onChangeStake("unstake", quantity);}} autoFocus>
+              UnStake
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div>
+    );
+  };
+
+  return (
+    <Grid container className="card-container" >
+      <Grid item md={12} lg={8} >
         <Grid container spacing={2}>
-          <Grid item xs={0} sm={0} md={1} lg={3} />
-          <Grid item xs={12} sm={12} md={10} lg={6} style={{ display: "flex" }}>
-            <Grid container spacing={2} className="card-container">
+          <Grid item xs={12} sm={12} md={12} lg={12} style={{ display: "flex", margin: "20px" }}>
+            <Grid container >
               <Grid item xs={12} sm={12} md={12} lg={12}>
                 <div className="title-big">
-                  Private Activity
+                  Stake Spozz Tokens
                 </div>
               </Grid>
-              <Grid item xs={6} sm={6} md={3} lg={3} className="grid-item"  >
+              <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item">
                 <div className="label-container">
-                  <div className="label-arrange">
-                    <span className="label-title">Avatar Owned</span>
-                    {
-                      avatarOwned != undefined ?
-                        <span className="label-title">{avatarOwned}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
-                    {/* <span className="label-title">{avatarOwned != undefined ? avatarOwned : 0}</span> */}
-                  </div>
-                  <div className="label-value">
-                    {
+                  <div>
+                    {/* {
                       avatarOwned != undefined ?
                         <span>Earn: {toFixed(avatarOwned * airdropUnits.avatar, 0)}</span> :
                         <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
-
+                    } */}
+                    <Row>
+                      <Col md={11} className="label-title">Tokens In your Wallet</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">ETH</Col>
+                      <Col xs={6} className="label-Frame">{spozzBalancesE? spozzBalancesE: <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">POLYGON</Col>
+                      <Col xs={6} className="label-Frame">{spozzBalancesB? spozzBalancesP: <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">BSC</Col>
+                      <Col xs={6} className="label-Frame">{spozzBalancesB? spozzBalancesB: <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={2}/>
+                      <Col xs={5}>
+                        <button
+                          className="claim-button"
+                          onClick={ () => {onApprove();}}
+                          disabled={
+                            isPendingTxn(pendingTransactions, "approving") || hasAllowance()}
+                        >
+                          {txnButtonText(pendingTransactions, "Approving", "Approve")}
+                        </button>
+                      </Col>
+                      <Col xs={5}>
+                        <button
+                          className="claim-button"
+                          onClick={() => {
+                            setOpen(true);
+                          }}
+                        >
+                          {txnButtonText(pendingTransactions, "staking", "Stake")}
+                        </button>
+                      </Col>
+                    </Row>
                   </div>
                 </div>
               </Grid>
-              <Grid item xs={6} sm={6} md={3} lg={3} className="grid-item"  >
+              <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item"  >
                 <div className="label-container">
-                  <div className="label-arrange">
-                    <span className="label-title">NFT Listed</span>
-                    {
-                      avatarOwned != undefined ?
-                        <span className="label-title">{nftListed}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
-
-                  </div>
-                  <div className="label-value">
-                    {
-                      avatarOwned != undefined ?
-                        <span>Earn: {toFixed(nftListed * airdropUnits.nft, 0)}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
+                  <div>
+                    <Row>
+                      <Col xs={11} className="label-title">Token Staked</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">ETH</Col>
+                      <Col xs={6} className="label-Frame">{stakedBalancesE? stakedBalancesE : 0}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">POLYGON</Col>
+                      <Col xs={6} className="label-Frame">{stakedBalancesP? stakedBalancesP : 0}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">BSC</Col>
+                      <Col xs={6} className="label-Frame">{stakedBalancesB? stakedBalancesB : 0}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={7}/>
+                      <Col xs={5}>
+                        <button
+                          className="claim-button"
+                          onClick={()=> {setOpen(true);}}
+                          disabled={
+                            isPendingTxn(pendingTransactions, "airdropping") }
+                        >
+                          {txnButtonText(pendingTransactions, "Unstaking", "Unstake")}
+                        </button>
+                      </Col>
+                    </Row>
                   </div>
                 </div>
               </Grid>
-              <Grid item xs={6} sm={6} md={3} lg={3} className="grid-item"  >
+              <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item"  >
                 <div className="label-container">
-                  <div className="label-arrange">
-                    <span className="label-title">Special NFT</span>
-                    {
-                      avatarOwned != undefined ?
-                        <span className="label-title">{specialNFT}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
+                  <div>
+                    <Row>
+                      <Col md={11} className="label-title">Rewards earned last month</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">ETH</Col>
+                      <Col xs={6} className="label-Frame">{rewardBalancesE? rewardBalancesE : 0}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">POLYGON</Col>
+                      <Col xs={6} className="label-Frame">{rewardBalancesP? rewardBalancesP : 0}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={5} className="label-Frame">BSC</Col>
+                      <Col xs={6} className="label-Frame">{rewardBalancesB? rewardBalancesB : 0}</Col>
+                    </Row>
+                    <Row>
+                      <Col xs={7}/>
+                      <Col xs={5}>
+                        <button
+                          className="claim-button"
+                          onClick={() => {onClaimReward();}}
+                          disabled={
+                            isPendingTxn(pendingTransactions, "airdropping") || !(claimable > 0 ) }
+                        >
+                          {txnButtonText(pendingTransactions, "Claiming", "Claim")}
+                        </button>
+                      </Col>
+                    </Row>
                   </div>
-                  <div className="label-value">
-                    {
-                      avatarOwned != undefined ?
-                        <span>Earn: {toFixed(specialNFT * airdropUnits.specialNFT, 0)}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
-
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={3} lg={3} className="grid-item"  >
-                <div className="label-container">
-                  <div className="label-arrange">
-                    <span className="label-title">Whitelisted</span>
-                    {
-                      avatarOwned != undefined ?
-                        <span className="label-title">{isWhitelist == true ? "Yes" : "No"}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
-                  </div>
-                  <div className="label-value">
-                    {
-                      avatarOwned != undefined ?
-                        <span>Earn: {isWhitelist == true ? airdropUnits.whitelist : 0}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={6} lg={6} className="grid-item"  >
-                <div className="label-container">
-                  <span className="label-title">Total Earned</span>
-                  <div className="label-value">
-                    {
-                      avatarOwned != undefined ?
-                        <span>{isReceived ? "You already received" : (totalEarned() + " SPOZZ")}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    }
-                  </div>
-                </div>
-              </Grid>
-              <Grid item xs={6} sm={6} md={6} lg={6} className="grid-item"  >
-                <div className="label-container">
-                  <button
-                    className="claim-button"
-                    onClick={onClaim}
-                    disabled={
-                      isPendingTxn(pendingTransactions, "airdropping") || totalEarned() <= 0 || isReceived
-                    }
-                  >
-                    {txnButtonText(pendingTransactions, "airdropping", "Claim My SPOZZ")}
-                  </button>
                 </div>
               </Grid>
             </Grid>
           </Grid>
         </Grid>
       </Grid>
+      <Grid item md={12} lg={4} >
+        <Grid container spacing={2} className="descriptionPanel">
+          <p className="descriptionText">
+            In Spozz Club, staking is used to reward Spozz token holders
+          </p>
+          <p className="descriptionText">
+            Monthly, the net benefit from the marketplace is calculated and distributed entirely to the spozz token owners
+            according to the shared of tokens staked by each wallet.
+          </p>
+          <p className="descriptionText">
+            Only tokens are eligible for rewards that are staked at cut-off time end of the month.
+            Cut-off time is midnight last day of each month Central European Time. Rewards are deposited
+            in the account of the user within the first week of the following month.
+          </p>
+          <p className="descriptionText">
+            Rewards are calculated using the number of days a token was staked within each month.
+            For Staking and Unstaking small Gas Fees are charged by the chain of the token.
+          </p>
+          <p className="descriptionText">
+            Rewards will be automatically added to the staking balance at the end of the month.
+            They cannot be claimed before.
+          </p>
+        </Grid>
+      </Grid>
+      {open && (
+        <SwapAlertDialog setOpen={setOpen} />
+      )}
     </Grid >
   );
 }

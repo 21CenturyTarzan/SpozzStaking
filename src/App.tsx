@@ -236,8 +236,7 @@ function App() {
       <div className={`app ${isSmallerScreen && "tablet"} ${isSmallScreen && "mobile"} dark`}>
         <Messages />
         <TopBar theme={theme} toggleTheme={toggleTheme} handleDrawerToggle={handleDrawerToggle} />
-        <Announcement />
-        <div style={{ overflowY: "scroll" }}>
+        <div style={{ overflowY: "scroll", display: "flex", width: "90%", marginLeft: "auto", marginRight: "auto", marginTop:"30px" }}>
           <Switch>
             <Route path="/stake">
                 <Stake />

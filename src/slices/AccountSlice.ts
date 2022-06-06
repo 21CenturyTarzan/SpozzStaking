@@ -2,17 +2,14 @@ import { BigNumber, BigNumberish, ethers } from "ethers";
 import { addresses } from "../constants";
 import { loadAppDetails } from "../slices/AppSlice";
 import { abi as ierc20Abi } from "../abi/IERC20.json";
-import { abi as airdropAbi } from "../abi/Airdrop.json"
+import { abi as stakingAbi } from "../abi/SpozzStaking.json"
 import axios from "axios";
 import { setAll, handleContractError, getDisplayBalance, getMarketPrice, getTazMarketPrice } from "../helpers";
 
 import { createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "src/store";
 import { IBaseAddressAsyncThunk, ICalcUserBondDetailsAsyncThunk, IBridgeAsyncThunk } from "./interfaces";
-import { findOrLoadMarketPrice } from "./AppSlice";
-import {
-  IERC20,
-} from "src/typechain";
+import { IERC20 } from "src/typechain";
 import { NetworkID } from "src/lib/Bond";
 
 export const getBalances = createAsyncThunk(
@@ -23,180 +20,101 @@ export const getBalances = createAsyncThunk(
 );
 
 /////////////////////
-export const getUserNFTBalance = createAsyncThunk(
+export const getUserBalance = createAsyncThunk(
   "account/getUserNFTBalance",
-  async ({ address, networkID, provider, secondNetworkID }: IBridgeAsyncThunk, { dispatch }) => {
+  async ({ address, networkID, provider }: IBridgeAsyncThunk, { dispatch }) => {
 
-    let isWhitelist = false;
-    let isReceived = false;
-    let url = null;
-    let polygonAirdropBalance = null;
-    let ethAirdropBalance = null;
-    let bscAirdropBalance = null;
+    let spozzBalancesE = null;
+    let spozzBalancesP = null;
+    let spozzBalancesB = null;
 
-    if (networkID == 4)
-      url = "https://deep-index.moralis.io/api/v2/" + address + "/nft?chain=rinkeby&format=decimal";
-    else if (networkID == 97)
-      url = "https://deep-index.moralis.io/api/v2/" + address + "/nft?chain=bsc%20testnet&format=decimal";
-    else if (networkID == 80001)
-      url = "https://deep-index.moralis.io/api/v2/" + address + "/nft?chain=mumbai&format=decimal";
-    else
-      url = "";
+    let stakedBalancesE = null;
+    let stakedBalancesP = null;
+    let stakedBalancesB = null;
 
-    const res = await axios.get(url, {
-      headers: { "X-API-Key": "iea1xCsNT6edUc6Xfu8ZqUorCRnshpsaC66IUaHOqbEnVFDK04qfeNsmGKikqJkn" },
-    });
+    let rewardBalancesE = null;
+    let rewardBalancesP = null;
+    let rewardBalancesB = null;
 
-    // if (true) {
-    //   const provider2 = new ethers.providers.JsonRpcProvider(
-    //     "https://speedy-nodes-nyc.moralis.io/24036fe0cb35ad4bdc12155f/polygon/mumbai",
-    //   );
-    //   const spozzContract = new ethers.Contract(addresses[80001].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-    //   let spotBalanceBN = await spozzContract.balanceOf(addresses[80001].AIRDROP_ADDRESS);
-    //   polygonAirdropBalance = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-    // }
+    if (true) {
+      const provider2 = new ethers.providers.JsonRpcProvider(
+        "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/polygon/mumbai",
+      );
+      const spozzContract = new ethers.Contract(addresses[80001].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
+      let spotBalanceBN = await spozzContract.balanceOf(address);
+      spozzBalancesP = ethers.utils.formatUnits(spotBalanceBN, "gwei");
+      try {
+        const stakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider2);
+        let userInfo = await stakingContract.userInfos(address);
+        stakedBalancesE = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
 
-    // if (true) {
-    //   const provider2 = new ethers.providers.JsonRpcProvider(
-    //     "https://speedy-nodes-nyc.moralis.io/24036fe0cb35ad4bdc12155f/eth/rinkeby",
-    //   );
-    //   const spozzContract = new ethers.Contract(addresses[4].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-    //   let spotBalanceBN = await spozzContract.balanceOf(addresses[4].AIRDROP_ADDRESS);
-    //   ethAirdropBalance = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-    // }
+        let userReward = await stakingContract.pendingSpozz();
+        rewardBalancesE = ethers.utils.formatUnits(userReward, "gwei");
 
-    // if (true) {
-    //   const provider2 = new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
-    //   const spozzContract = new ethers.Contract(addresses[97].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-    //   let spotBalanceBN = await spozzContract.balanceOf(addresses[97].AIRDROP_ADDRESS);
-    //   bscAirdropBalance = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-    // }
-
-    const userNFTList = res.data.result;
-
-
-    const nftBalances = [];
-    const xnftBalances = [];
-    try {
-
-      const airdropContract = new ethers.Contract(addresses[networkID].AIRDROP_ADDRESS as string, airdropAbi, provider);
-      for (let i = 0; i < userNFTList.length; i++) {
-        const item = userNFTList[i];
-        const isNFTRegistered = await airdropContract.isNFTRegistered(item.token_address);
-        if (isNFTRegistered) {
-          let newItem = {
-            "address": item.token_address,
-            "id": item.token_id,
-            "type": item.contract_type == "ERC721"
-          }
-          // xnftBalances.push(newItem);
-          nftBalances.push(newItem);
-        }
-
-        const isXNFTRegistered = await airdropContract.isXNFTRegistered(item.token_address);
-        if (isXNFTRegistered) {
-          xnftBalances.push({
-            address: item.token_address,
-            amount: item.amount,
-            id: item.token_id,
-            type: item.contract_type == "ERC721"
-          })
-        }
+      } catch (e) {
+        handleContractError(e);
       }
-
-      isWhitelist = await airdropContract.isWhitelist(address);
-      isReceived = await airdropContract.isReceived(address);
-
-    } catch (e) {
-      console.log(e);
     }
+
+    if (true) {
+      const provider2 = new ethers.providers.JsonRpcProvider(
+        "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/eth/rinkeby",
+      );
+      const spozzContract = new ethers.Contract(addresses[4].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
+      let spotBalanceBN = await spozzContract.balanceOf(address);
+      spozzBalancesE = ethers.utils.formatUnits(spotBalanceBN, "gwei");
+      try {
+        const stakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider2);
+        let userInfo = await stakingContract.userInfos(address);
+        stakedBalancesP = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
+
+        let userReward = await stakingContract.pendingSpozz();
+        rewardBalancesP = ethers.utils.formatUnits(userReward, "gwei");
+
+      } catch (e) {
+        handleContractError(e);
+      }
+    }
+
+    if (true) {
+      const provider2 = new ethers.providers.JsonRpcProvider("https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/bsc/testnet",);
+      const spozzContract = new ethers.Contract(addresses[97].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
+      let spotBalanceBN = await spozzContract.balanceOf(address);
+      spozzBalancesB = ethers.utils.formatUnits(spotBalanceBN, "gwei");
+
+      try {
+        const stakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider2);
+        let userInfo = await stakingContract.userInfos(address);
+        stakedBalancesB = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
+
+        let userReward = await stakingContract.pendingSpozz();
+        rewardBalancesB = ethers.utils.formatUnits(userReward, "gwei");
+
+      } catch (e) {
+        handleContractError(e);
+      }
+    }
+
+    const curSpozzContract = new ethers.Contract(addresses[networkID].SPOZZ_ADDRESS as string, ierc20Abi, provider) as IERC20;
+    const allowance = await curSpozzContract.allowance(address, addresses[networkID].STAKING_ADDRESS);
+    const stakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider);
+    let claimable = await stakingContract.pendingSpozz();
 
     return {
       balances: {
-        nftBalances: nftBalances,
-        xnftBalances: xnftBalances,
-        avatarBalance: 0,
-        isWhitelist: isWhitelist,
-        isReceived: isReceived,
-        airdropBalance: {
-          eth: ethAirdropBalance,
-          bsc: bscAirdropBalance,
-          polygon: polygonAirdropBalance,
-        }
-
+        spozzBalancesE: spozzBalancesE,
+        spozzBalancesP: spozzBalancesP,
+        spozzBalancesB: spozzBalancesB,
+        stakedBalancesE: stakedBalancesE,
+        stakedBalancesP: stakedBalancesP,
+        stakedBalancesB: stakedBalancesB,
+        stakeAllowance: ethers.utils.formatUnits(allowance, "gwei"),
+        rewardBalancesE: rewardBalancesE,
+        rewardBalancesP: rewardBalancesP,
+        rewardBalancesB: rewardBalancesB,
+        claimable: claimable,
       },
     };
-
-    // console.log("getUserNFTBalance", networkID);
-    // try {
-    //   let res;
-    //   if (true) {
-    //     const tokenContract = new ethers.Contract(
-    //       addresses[networkID].SPOZZ_ADDRESS as string,
-    //       ierc20Abi,
-    //       provider,
-    //     ) as IERC20;
-    //     let srcSpotBalanceBN = await tokenContract.balanceOf(address);
-    //     srcSpotBalance = ethers.utils.formatUnits(srcSpotBalanceBN, "gwei");
-    //     console.log(address, addresses[networkID].BRIDGE_ADDRESS);
-    //     let tokenAllowanceBN = await tokenContract.allowance(address, addresses[networkID].BRIDGE_ADDRESS);
-    //     tokenAllowance = ethers.utils.formatUnits(tokenAllowanceBN, "gwei");
-    //   }
-
-    //   // let res2;
-    //   if (secondNetworkID == 1) {
-    //     // res2 = await axios.get(
-    //     //   "https://deep-index.moralis.io/api/v2/" +
-    //     //     address +
-    //     //     "/erc20?chain=eth&token_addresses=" +
-    //     //     addresses[secondNetworkID].SPOZZ_ADDRESS,
-    //     //   {
-    //     //     headers: { "X-API-Key": "YEEwMh0B4VRg6Hu5gFQcKxqinJ7UizRza1JpbkyMgNTfj4jUkSaZVajOxLNabvnt" },
-    //     //   },
-    //     // );
-    //     dstSpotBalance = 0;
-    //   }
-    //   if (true) {
-    //     const provider2 = new ethers.providers.JsonRpcProvider(
-    //       "https://speedy-nodes-nyc.moralis.io/24036fe0cb35ad4bdc12155f/polygon/mumbai",
-    //     );
-    //     const spozzContract = new ethers.Contract(addresses[80001].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-    //     let spotBalanceBN = await spozzContract.balanceOf(address);
-    //     polySpotBlance = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-    //   }
-    //   if (true) {
-    //     const provider2 = new ethers.providers.JsonRpcProvider(
-    //       "https://speedy-nodes-nyc.moralis.io/24036fe0cb35ad4bdc12155f/eth/rinkeby",
-    //     );
-    //     const spozzContract = new ethers.Contract(addresses[4].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-    //     let spotBalanceBN = await spozzContract.balanceOf(address);
-    //     ethSpotBalance = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-    //   }
-    //   if (true) {
-    //     const provider2 = new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
-    //     const spozzContract = new ethers.Contract(addresses[97].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-    //     let spotBalanceBN = await spozzContract.balanceOf(address);
-    //     bscSpotBalance = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-    //   }
-    //   // dstSpotBalance = ethers.utils.formatUnits(res2.data[0].balance, "ether");
-    // } catch (e) {
-    //   handleContractError(e);
-    // }
-    // // await dispatch(loadAppDetails({ networkID: networkID, provider: provider, address: address }));
-
-    // const spotBalances = {
-    //   eth: ethSpotBalance,
-    //   bsc: bscSpotBalance,
-    //   polygon: polySpotBlance,
-    // };
-    // return {
-    //   balances: {
-    //     srcSpotBalance: srcSpotBalance,
-    //     tokenAllowance: tokenAllowance,
-    //     dstSpotBalance: dstSpotBalance,
-    //     spotBalances,
-    //   },
-    // };
   },
 );
 
@@ -223,7 +141,7 @@ export const loadAccountDetails = createAsyncThunk(
     else if (networkID == NetworkID.BSCMainnet) secondNetworkID = 1;
     else if (networkID == NetworkID.BSCTestnet) secondNetworkID = 3;
 
-    await dispatch(getUserNFTBalance({ address, networkID, provider, secondNetworkID }));
+    await dispatch(getUserBalance({ address, networkID, provider }));
 
     return {
       staking: {
@@ -407,14 +325,14 @@ const accountSlice = createSlice({
         state.loading = false;
         console.log(error);
       })
-      .addCase(getUserNFTBalance.pending, state => {
+      .addCase(getUserBalance.pending, state => {
         state.loading = true;
       })
-      .addCase(getUserNFTBalance.fulfilled, (state, action) => {
+      .addCase(getUserBalance.fulfilled, (state, action) => {
         setAll(state, action.payload);
         state.loading = false;
       })
-      .addCase(getUserNFTBalance.rejected, (state, { error }) => {
+      .addCase(getUserBalance.rejected, (state, { error }) => {
         state.loading = false;
         console.log(error);
       })

@@ -1,15 +1,13 @@
 import { ethers } from "ethers";
 import { addresses } from "../constants";
 import { abi as ierc20Abi } from "../abi/IERC20.json";
+import axios from 'axios';
 import { abi as tazorStaking } from "../abi/tazorStaking.json";
 import {
   setAll,
   getTokenPrice,
   getDisplayBalance,
   getMarketPrice,
-  getTazMarketPrice,
-  getTazorMarketCap,
-  getTazMarketCap,
 } from "../helpers";
 import { NodeHelper } from "src/helpers/NodeHelper";
 import { createSlice, createSelector, createAsyncThunk } from "@reduxjs/toolkit";
@@ -28,12 +26,16 @@ export const loadAppDetails = createAsyncThunk(
 
     let marketPrice;
     try {
-      const originalPromiseResult = await dispatch(
-        loadMarketPrice({ networkID: networkID, provider: provider, address: address }),
-      ).unwrap();
-      marketPrice = originalPromiseResult?.marketPrice;
+      // const originalPromiseResult = await dispatch(
+      //   loadMarketPrice({ networkID: networkID, provider: provider }),
+      // ).unwrap();
+      //pair address: 0x806955F90Ee7765736811eD83e7d1B04f782d81b
+      const res = await axios.get("https://deep-index.moralis.io/api/v2/erc20/0x494BF4795c80E01EA51EBD1cBc5d3C54fCD49Dba/price?chain=rinkeby", {
+        headers: { "X-API-Key": "iea1xCsNT6edUc6Xfu8ZqUorCRnshpsaC66IUaHOqbEnVFDK04qfeNsmGKikqJkn" },
+      });
+      marketPrice = res.data.usdPrice;
+      console.log("[tz]: spozz market price: ", marketPrice);
     } catch (rejectedValueOrSerializedError) {
-      // handle error here
       console.error("Returned a null response from dispatch(loadMarketPrice)");
       return;
     }
@@ -44,56 +46,9 @@ export const loadAppDetails = createAsyncThunk(
         marketPrice,
       } as IAppData;
     }
-
-    // const currentBlock = await provider.getBlockNumber();
-    // const tazorStakingContract = new ethers.Contract(
-    //   addresses[networkID].STAKING_ADDRESS as string,
-    //   tazorStaking,
-    //   provider,
-    // );
-    // const stakingAPY = Number(getDisplayBalance(await tazorStakingContract.getAPRvalue(address), 9));
     return {
       marketPrice,
     } as IAppData;
-  },
-);
-
-/**
- * checks if app.slice has marketPrice already
- * if yes then simply load that state
- * if no then fetches via `loadMarketPrice`
- *
- * `usage`:
- * ```
- * const originalPromiseResult = await dispatch(
- *    findOrLoadMarketPrice({ networkID: networkID, provider: provider }),
- *  ).unwrap();
- * originalPromiseResult?.whateverValue;
- * ```
- */
-export const findOrLoadMarketPrice = createAsyncThunk(
-  "app/findOrLoadMarketPrice",
-  async ({ networkID, provider, address }: IBaseAsyncThunk, { dispatch, getState }) => {
-    const state: any = getState();
-    let marketPrice;
-    // check if we already have loaded market price
-    if (state.app.loadingMarketPrice === false && state.app.marketPrice && state.app.tazMarketPrice) {
-      // go get marketPrice from app.state
-      marketPrice = state.app.marketPrice;
-    } else {
-      // we don't have marketPrice in app.state, so go get it
-      try {
-        const originalPromiseResult = await dispatch(
-          loadMarketPrice({ networkID: networkID, provider: provider, address: address }),
-        ).unwrap();
-        marketPrice = originalPromiseResult?.marketPrice;
-      } catch (rejectedValueOrSerializedError) {
-        // handle error here
-        console.error("Returned a null response from dispatch(loadMarketPrice)");
-        return;
-      }
-    }
-    return { marketPrice };
   },
 );
 

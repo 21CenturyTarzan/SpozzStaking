@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { addresses } from "../constants";
 import { abi as AirdropAbi } from "../abi/Airdrop.json";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getBalances, getUserNFTBalance } from "./AccountSlice";
+import { getBalances, getUserBalance } from "./AccountSlice";
 import { clearPendingTxn, fetchPendingTxns } from "./PendingTxnsSlice";
 import { error, info } from "./MessagesSlice";
 import { IJsonRPCError, IAirdropAsyncThunk } from "./interfaces";
@@ -29,7 +29,7 @@ export const airdropSpozz = createAsyncThunk(
       const pendingTxnType = "airdropping";
       dispatch(fetchPendingTxns({ txnHash: approveTx.hash, text: pendingTxnType, type: pendingTxnType }));
       const tx = await approveTx.wait();
-      await dispatch(getUserNFTBalance({provider, address, networkID, secondNetworkID: 1}))
+      await dispatch(getUserBalance({provider, address, networkID}))
     } catch (e: unknown) {
       const errMsg = (e as IJsonRPCError).message;
       if (errMsg.includes("only whitelisted"))
