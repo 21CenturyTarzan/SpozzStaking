@@ -1,0 +1,31 @@
+// .dapp-topbar {
+//   width: 100%;
+//   align-items: center;
+//   background-color: #fff;
+//   a,
+//   button {
+//     white-space: nowrap !important;
+//     overflow: hidden !important;
+//     // margin: 25px !important;
+//     // padding: 25px !important;
+//     min-width: 150px !important;
+//     @media (max-width: 600px) {
+//       max-width: 100px !important;
+//       margin: 20px 5px;
+//     }
+//     &#hamburger {
+//       padding: 11px !important;
+//     }
+//     &.toggle-button {
+//       padding: 9.5px !important;
+//     }
+//   }
+// }
+
+// .connect-button-theme {
+//   background: linear-gradient(90deg, #4786D6 37.02%, #42DACE 100%) !important;
+// }
+.connect-button-theme :hover {
+  // background: #4786D6 !important;
+  background-color: #4786D6;
+}

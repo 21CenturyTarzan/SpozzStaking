@@ -21,9 +21,10 @@ function ChangeNetwork() {
   };
 
   const handleSwitchChain = id => {
+
     return () => {
-      dispatch(switchNetwork({ provider: provider, networkId: id }));
       handleClose();
+      dispatch(switchNetwork({ provider: provider, networkId: id }));
     };
   };
 

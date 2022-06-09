@@ -124,7 +124,7 @@ export const switchNetwork = createAsyncThunk(
           dispatch(initializeNetwork({ provider }));
         } catch (e) {
           console.log(e);
-          dispatch(error("Error switching network! Please check wallet connect stauts"));
+          dispatch(error("Error switching network! Please check wallet connect stauts first"));
         }
       }
       // }

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Box, Button, Divider, Fade, Link, Paper, Popper, Slide, SvgIcon, Typography } from "@material-ui/core";
-import { ReactComponent as ArrowUpIcon } from "../../assets/icons/arrow-up.svg";
-import { ReactComponent as CaretDownIcon } from "../../assets/icons/caret-down.svg";
 import { useWeb3Context } from "src/hooks/web3Context";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { Trans } from "@lingui/macro";
 import { trim, shorten } from "../../helpers";
+import "./connect-menu.scss";
 
 function ConnectMenu({ theme }) {
   const { connect, disconnect, connected, web3, address } = useWeb3Context();
@@ -81,6 +80,7 @@ function ConnectMenu({ theme }) {
       id="wallet-menu"
     >
       <Button
+        className={buttonStyles}
         id="wallet-button"
         variant="contained"
         color="primary"
@@ -108,7 +108,7 @@ function ConnectMenu({ theme }) {
                     style={{ marginBottom: "0px", padding: "15px", margin: "15px" }}
                     fullWidth
                   >
-                    <Typography>{shorten(address)}</Typography>
+                    {shorten(address)}
                   </Button>
                 </Box>
               </Paper>

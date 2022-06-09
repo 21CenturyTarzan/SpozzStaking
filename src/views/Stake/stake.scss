@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
 
 .card-container {
-  background-color: #0002;
+  background-color: #00000033;
   padding: 30px;
   border-radius: 40px;
   margin-bottom: 30px !important;
@@ -40,6 +40,9 @@
         margin-left: auto;
         margin-right: auto;
         margin-top: 5px;
+        @media (max-width: 1500px) {
+          font-size: 18px;
+        }
       }
 
       .label-title {
@@ -54,12 +57,15 @@
           font-size: 25px;
           min-height: 30px;
         }
+        @media (max-width: 1500px) {
+          font-size: 21px;
+          min-height: 40px;
+        }
       }
 
       .label-value {
         display: flex;
         justify-content: center;
-        font-size: 24px;
         font-size: 24px;
       }
     }
@@ -87,6 +93,9 @@
       @media (max-width: 600px) {
         width: 100%;
       }
+      @media (max-width: 1280px) {
+        width: 90%;
+      }
     }
 
     .claim-button:hover {
@@ -100,10 +109,10 @@
 
   }
   .descriptionText {
-    font-size: 24px;
+    font-size: 21px;
     margin: 10px;
     @media (max-width: 600px) {
-      font-size: 20px;
+      font-size: 18px;
     }
   }
   .descriptionPanel {

@@ -181,7 +181,7 @@ function TopBar({ theme, toggleTheme, handleDrawerToggle }) {
         // className={`button-dapp-menu ${isActive ? "active" : ""}`}
         >
           <Typography variant="h3" className={classes.buttonProp}>
-            STATSTICS
+            STATISTICS
           </Typography>
         </Link>
         <Link

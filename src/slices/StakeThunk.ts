@@ -80,8 +80,8 @@ export const approveSpozz = createAsyncThunk(
         ethers.utils.parseUnits("10000000000", "gwei"),
       );
 
-      const text = "Approve Spozz";
-      const pendingTxnType = "approve_Spozz";
+      const text = "approve";
+      const pendingTxnType = "approving";
       if (approveTx) {
         dispatch(fetchPendingTxns({ txnHash: approveTx.hash, text, type: pendingTxnType }));
         await approveTx.wait();
@@ -113,6 +113,7 @@ export const approveSpozz = createAsyncThunk(
 export const changeStake = createAsyncThunk(
   "stake/changeTazorStake",
   async ({ action, value, provider, address, networkID }: IActionValueAsyncThunk, { dispatch }) => {
+    console.log("networkID in stakethunk------", networkID);
     if (!provider) {
       dispatch(error("Please connect your wallet!"));
       return;
@@ -128,15 +129,18 @@ export const changeStake = createAsyncThunk(
     let stakeTx;
     try {
       if (true) {
-        let rebasing = true; // when true stake into sOHM
         if (action === "stake") {
+          if (parseInt(value) == 0) {
+            dispatch(error("Please check staking amount"));
+            return;
+          }
           stakeTx = await spozzStakingContract.stakeToken(ethers.utils.parseUnits(value, "gwei"));
         } else {
           stakeTx = await spozzStakingContract.unstakeToken(ethers.utils.parseUnits(value, "gwei"));
         }
       } else {
       }
-      const pendingTxnType = action === "stake" ? "TAZOR staking" : "TAZOR unstaking";
+      const pendingTxnType = action === "stake" ? "staking" : "unstaking";
       dispatch(fetchPendingTxns({ txnHash: stakeTx.hash, text: getStakingTypeText(action), type: pendingTxnType }));
       await stakeTx.wait();
     } catch (e) {

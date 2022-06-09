@@ -14,9 +14,7 @@ import { NetworkID } from "src/lib/Bond";
 
 export const getBalances = createAsyncThunk(
   "account/getBalances",
-  async ({ address, networkID, provider }: IBaseAddressAsyncThunk, { dispatch }) => {
-    await dispatch(loadAppDetails({ networkID: networkID, provider: provider, address: address }));
-  },
+  async ({ address, networkID, provider }: IBaseAddressAsyncThunk, { dispatch }) => {  },
 );
 
 /////////////////////
@@ -24,6 +22,7 @@ export const getUserBalance = createAsyncThunk(
   "account/getUserNFTBalance",
   async ({ address, networkID, provider }: IBridgeAsyncThunk, { dispatch }) => {
 
+    console.log("calling getUserBalance function in accountslice");
     let spozzBalancesE = null;
     let spozzBalancesP = null;
     let spozzBalancesB = null;
@@ -36,6 +35,9 @@ export const getUserBalance = createAsyncThunk(
     let rewardBalancesP = null;
     let rewardBalancesB = null;
 
+    let allowance;
+    let claimable = null;
+
     if (true) {
       const provider2 = new ethers.providers.JsonRpcProvider(
         "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/polygon/mumbai",
@@ -44,13 +46,12 @@ export const getUserBalance = createAsyncThunk(
       let spotBalanceBN = await spozzContract.balanceOf(address);
       spozzBalancesP = ethers.utils.formatUnits(spotBalanceBN, "gwei");
       try {
-        const stakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider2);
+        const stakingContract = new ethers.Contract(addresses[80001].STAKING_ADDRESS as string, stakingAbi, provider2);
         let userInfo = await stakingContract.userInfos(address);
-        stakedBalancesE = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
+        stakedBalancesP = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
 
-        let userReward = await stakingContract.pendingSpozz();
-        rewardBalancesE = ethers.utils.formatUnits(userReward, "gwei");
-
+        let userReward = await stakingContract.pendingSpozz(address);
+        rewardBalancesP = ethers.utils.formatUnits(userReward, "gwei");
       } catch (e) {
         handleContractError(e);
       }
@@ -64,13 +65,12 @@ export const getUserBalance = createAsyncThunk(
       let spotBalanceBN = await spozzContract.balanceOf(address);
       spozzBalancesE = ethers.utils.formatUnits(spotBalanceBN, "gwei");
       try {
-        const stakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider2);
+        const stakingContract = new ethers.Contract(addresses[4].STAKING_ADDRESS as string, stakingAbi, provider2);
         let userInfo = await stakingContract.userInfos(address);
-        stakedBalancesP = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
+        stakedBalancesE = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
 
-        let userReward = await stakingContract.pendingSpozz();
-        rewardBalancesP = ethers.utils.formatUnits(userReward, "gwei");
-
+        let userReward = await stakingContract.pendingSpozz(address);
+        rewardBalancesE = ethers.utils.formatUnits(userReward, "gwei");
       } catch (e) {
         handleContractError(e);
       }
@@ -83,22 +83,21 @@ export const getUserBalance = createAsyncThunk(
       spozzBalancesB = ethers.utils.formatUnits(spotBalanceBN, "gwei");
 
       try {
-        const stakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider2);
+        const stakingContract = new ethers.Contract(addresses[97].STAKING_ADDRESS as string, stakingAbi, provider2);
         let userInfo = await stakingContract.userInfos(address);
         stakedBalancesB = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
 
-        let userReward = await stakingContract.pendingSpozz();
+        let userReward = await stakingContract.pendingSpozz(address);
         rewardBalancesB = ethers.utils.formatUnits(userReward, "gwei");
-
       } catch (e) {
         handleContractError(e);
       }
     }
 
-    const curSpozzContract = new ethers.Contract(addresses[networkID].SPOZZ_ADDRESS as string, ierc20Abi, provider) as IERC20;
-    const allowance = await curSpozzContract.allowance(address, addresses[networkID].STAKING_ADDRESS);
-    const stakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider);
-    let claimable = await stakingContract.pendingSpozz();
+    const curspozzContract = new ethers.Contract(addresses[networkID].SPOZZ_ADDRESS as string, ierc20Abi, provider) as IERC20;
+    const curstakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider);
+    allowance = await curspozzContract.allowance(address, addresses[networkID].STAKING_ADDRESS);
+    claimable = await curstakingContract.pendingSpozz(address);
 
     return {
       balances: {
@@ -108,11 +107,11 @@ export const getUserBalance = createAsyncThunk(
         stakedBalancesE: stakedBalancesE,
         stakedBalancesP: stakedBalancesP,
         stakedBalancesB: stakedBalancesB,
-        stakeAllowance: ethers.utils.formatUnits(allowance, "gwei"),
         rewardBalancesE: rewardBalancesE,
         rewardBalancesP: rewardBalancesP,
         rewardBalancesB: rewardBalancesB,
-        claimable: claimable,
+        stakeAllowance: ethers.utils.formatUnits(allowance, "gwei"),
+        claimable: ethers.utils.formatUnits(claimable, "gwei"),
       },
     };
   },
@@ -134,13 +133,7 @@ export const loadAccountDetails = createAsyncThunk(
   async ({ networkID, provider, address }: IBaseAddressAsyncThunk, { dispatch }) => {
     let tazorAllowance = BigNumber.from("0");
     let tazAllowance = BigNumber.from("0");
-    let secondNetworkID = 3;
-
-    if (networkID == NetworkID.Mainnet) secondNetworkID = 56;
-    else if (networkID == NetworkID.Testnet) secondNetworkID = 97;
-    else if (networkID == NetworkID.BSCMainnet) secondNetworkID = 1;
-    else if (networkID == NetworkID.BSCTestnet) secondNetworkID = 3;
-
+    console.log("------ calling load account detail (parent of getuserbalance)----------");
     await dispatch(getUserBalance({ address, networkID, provider }));
 
     return {
@@ -334,7 +327,6 @@ const accountSlice = createSlice({
       })
       .addCase(getUserBalance.rejected, (state, { error }) => {
         state.loading = false;
-        console.log(error);
       })
   },
 });

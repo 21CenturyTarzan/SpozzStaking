@@ -57,8 +57,8 @@ function App() {
     setMigrationModalOpen(true);
   };
   const migModalClose = () => {
-    dispatch(loadAccountDetails({ networkID: networkId, address, provider }));
-    setMigrationModalOpen(false);
+    // dispatch(loadAccountDetails({ networkID: networkId, address, provider }));
+    // setMigrationModalOpen(false);
   };
 
   const isSmallerScreen = useMediaQuery("(max-width: 980px)");

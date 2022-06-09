@@ -5,19 +5,14 @@ import {
   Grid,
   FormControl,
   OutlinedInput,
-  InputLabel,
   Typography,
-  MenuItem,
   Dialog,
-  LinearProgress,
-  CircularProgress,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   useMediaQuery,
   InputAdornment,
-  Zoom,
 } from "@material-ui/core";
 
 import TabPanel from "../../components/TabPanel";
@@ -40,12 +35,6 @@ import { isPendingTxn, txnButtonText } from "src/slices/PendingTxnsSlice";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import "bootstrap/dist/css/bootstrap.min.css";
-import ethereum from "../../assets/tokens/wETH.svg";
-import arbitrum from "../../assets/arbitrum.png";
-import avalanche from "../../assets/tokens/AVAX.svg";
-import polygon from "../../assets/tokens/polygon.svg";
-import binance from "../../assets/binance.png";
-
 import "./stake.scss";
 
 const airdropUnits = {
@@ -67,8 +56,12 @@ export default function Stake() {
   const { connect, disconnect, connected, web3, provider, address, chainID, chainChanged } = useWeb3Context();
 
   const [open, setOpen] = useState(false);
+  const [stakeClicked, setStakeClicked] = useState(true);
   const isSmallScreen = useMediaQuery("(max-width: 650px)");
   const isVerySmallScreen = useMediaQuery("(max-width: 379px)");
+  const isAccountLoading = useAppSelector(state => state.account.loading ?? true);
+  const isAppLoading = useSelector(state => state.app.loading);
+
 
   // const [dstSwapBalance, setDstSwapBalance] = useState(0);
   const spozzBalancesE = useAppSelector(state => {
@@ -106,7 +99,7 @@ export default function Stake() {
   const rewardBalancesB = useAppSelector(state => {
     return state.account.balances && state.account.balances.rewardBalancesB;
   });
-  
+
 
   const balances = useAppSelector(state => {
     return state.account.balances && state.account.balances;
@@ -157,49 +150,31 @@ export default function Stake() {
     if (isNaN(quantity) || quantity === 0 || quantity === "" || !quantity) {
       return dispatch(error("Please enter a value!"));
     }
-    await dispatch(changeStake({ address, action, value: quantity.toString(), provider, networkID: chainID }));
-
     setOpen(false);
+    console.log("chainID------on stake", chainID);
+    console.log("networkId------on stake", networkId);
+    await dispatch(changeStake({ address, action, value: quantity.toString(), provider, networkID: networkId }));
   };
 
   const onClaimReward = async action => {
-    await dispatch(claimSpozz({ address, action, value: quantity.toString(), provider, networkID: chainID }));
+    await dispatch(claimSpozz({ address, provider, networkID: networkId }));
   };
 
-  const onSrcNetworkChanged = id => {
-    if (!connected) return dispatch(info("Please connect to wallet"));
-    dispatch(switchNetwork({ provider: provider, networkId: networkList[id].id })).then(e => {
-      let list = [];
-      networkList.map((item, index) => {
-        if (id != index) list.push(item);
-      });
-      setDestinationNetworkList(list);
-      setSrcNetIndex(id);
-      setDstNetIndex(0);
-    });
-  };
+  let modalButton = [];
 
-  const NetworkIcon = ({ list, id }) => {
-    return (
-      <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
-        <img src={list[id].image} width="45px" height="45px" />
-        <span className="network-name">{list[id].title}</span>
-      </div>
-    );
-  };
+  modalButton.push(
+    <Button variant="contained" color="primary" className="connect-button" onClick={connect} key={1}>
+      Connect Wallet
+    </Button>,
+  )
 
-  const totalEarned = () => {
-    let total = 0;
-    return total;
-  }
-
-  const SwapAlertDialog = ({setOpen}) => {
+  const SwapAlertDialog = ({ setOpen }) => {
     const [quantity, setQuantity] = useState("");
     return (
       <div style={{ background: "#ff0 !important" }}>
         <Dialog
           open={open}
-          onClose={()=>{close()}}
+          onClose={() => { close() }}
           aria-labelledby="alert-dialog-title"
           aria-describedby="alert-dialog-description"
         >
@@ -209,7 +184,7 @@ export default function Stake() {
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
               <Typography style={{ color: "#fff", fontSize: "20px", margin: "15px 40px" }}>Please Input Spozz Amount.</Typography>
-              <FormControl variant="outlined" color="primary" style={{width: "100%"}}>
+              <FormControl variant="outlined" color="primary" style={{ width: "100%" }}>
                 <OutlinedInput
                   id="amount-input"
                   type="number"
@@ -223,15 +198,17 @@ export default function Stake() {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button variant="outlined" color="secondary" onClick={()=>{setOpen(false);}}>
+            <Button variant="outlined" color="secondary" onClick={() => { setOpen(false); }}>
               Cancel
             </Button>
-            <Button variant="outlined" color="secondary" onClick={()=>{onChangeStake("stake", quantity);}}>
-              Stake
-            </Button>
-            <Button variant="outlined" color="secondary" onClick={()=>{onChangeStake("unstake", quantity);}} autoFocus>
-              UnStake
-            </Button>
+            {stakeClicked ?
+              (<Button variant="outlined" color="secondary" onClick={() => { onChangeStake("stake", quantity); }}>
+                Stake
+              </Button>) : (
+                <Button variant="outlined" color="secondary" onClick={() => { onChangeStake("unstake", quantity); }} autoFocus>
+                  UnStake
+                </Button>
+              )}
           </DialogActions>
         </Dialog>
       </div>
@@ -246,126 +223,159 @@ export default function Stake() {
             <Grid container >
               <Grid item xs={12} sm={12} md={12} lg={12}>
                 <div className="title-big">
-                  Stake Spozz Tokens
+
+                  <span style={{ textAlign: "center" }}>Stake Spozz Tokens</span>
+                  {!address ? <></> : <div>
+                    {isAccountLoading ? <span style={{ fontSize: "20px", marginLeft: "50px" }}>( Loading data ... )</span> :
+                      (() => {
+                        if (networkId == 4 || networkId == 1) {
+                          return (
+                            <span style={{ fontSize: "20px", marginLeft: "50px", textAlign: "center" }}>( Ethereum Network )</span>
+                          )
+                        }
+                        else if (networkId == 97 || networkId == 56) {
+                          return (
+                            <span style={{ fontSize: "20px", marginLeft: "50px" }}> ( BSC Network )</span>
+                          )
+                        }
+                        else if (networkId == 137 || networkId == 80001) {
+                          return (
+                            <span style={{ fontSize: "20px", marginLeft: "50px" }}> ( Polygon Network )</span>
+                          )
+                        }
+                        return null;
+                      })()}
+                  </div>}
                 </div>
               </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item">
-                <div className="label-container">
-                  <div>
-                    {/* {
+              {address ? (<>
+                <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item">
+                  <div className="label-container">
+                    <div>
+                      {/* {
                       avatarOwned != undefined ?
                         <span>Earn: {toFixed(avatarOwned * airdropUnits.avatar, 0)}</span> :
                         <Skeleton type="text" width={"60px"} height={"100%"} />
                     } */}
-                    <Row>
-                      <Col md={11} className="label-title">Tokens In your Wallet</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">ETH</Col>
-                      <Col xs={6} className="label-Frame">{spozzBalancesE? spozzBalancesE: <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">POLYGON</Col>
-                      <Col xs={6} className="label-Frame">{spozzBalancesB? spozzBalancesP: <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">BSC</Col>
-                      <Col xs={6} className="label-Frame">{spozzBalancesB? spozzBalancesB: <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={2}/>
-                      <Col xs={5}>
-                        <button
-                          className="claim-button"
-                          onClick={ () => {onApprove();}}
-                          disabled={
-                            isPendingTxn(pendingTransactions, "approving") || hasAllowance()}
-                        >
-                          {txnButtonText(pendingTransactions, "Approving", "Approve")}
-                        </button>
-                      </Col>
-                      <Col xs={5}>
-                        <button
-                          className="claim-button"
-                          onClick={() => {
-                            setOpen(true);
-                          }}
-                        >
-                          {txnButtonText(pendingTransactions, "staking", "Stake")}
-                        </button>
-                      </Col>
-                    </Row>
+                      <Row>
+                        <Col md={11} className="label-title">Tokens In your Wallet</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">ETH</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(spozzBalancesE).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">POLYGON</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(spozzBalancesP).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">BSC</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(spozzBalancesB).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={6} />
+                        <Col xs={6}>
+                          {!hasAllowance() ? (
+                            <button
+                              className="claim-button"
+                              onClick={() => { onApprove(); }}
+                              disabled={
+                                isPendingTxn(pendingTransactions, "approving") || isAccountLoading}
+                            >
+                              {txnButtonText(pendingTransactions, "approving", "Approve")}
+                            </button>
+                          ) : (
+                            <button
+                              className="claim-button"
+                              onClick={() => {
+                                setStakeClicked(true);
+                                setOpen(true);
+                              }}
+                              disabled={isAccountLoading || isPendingTxn(pendingTransactions, "staking")}
+                            >
+                              {txnButtonText(pendingTransactions, "staking", "Stake")}
+                            </button>
+                          )}
+                        </Col>
+                      </Row>
+                    </div>
                   </div>
-                </div>
-              </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item"  >
-                <div className="label-container">
-                  <div>
-                    <Row>
-                      <Col xs={11} className="label-title">Token Staked</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">ETH</Col>
-                      <Col xs={6} className="label-Frame">{stakedBalancesE? stakedBalancesE : 0}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">POLYGON</Col>
-                      <Col xs={6} className="label-Frame">{stakedBalancesP? stakedBalancesP : 0}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">BSC</Col>
-                      <Col xs={6} className="label-Frame">{stakedBalancesB? stakedBalancesB : 0}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={7}/>
-                      <Col xs={5}>
-                        <button
-                          className="claim-button"
-                          onClick={()=> {setOpen(true);}}
-                          disabled={
-                            isPendingTxn(pendingTransactions, "airdropping") }
-                        >
-                          {txnButtonText(pendingTransactions, "Unstaking", "Unstake")}
-                        </button>
-                      </Col>
-                    </Row>
+                </Grid>
+                <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item"  >
+                  <div className="label-container">
+                    <div>
+                      <Row>
+                        <Col xs={11} className="label-title">Token Staked</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">ETH</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(stakedBalancesE).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">POLYGON</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(stakedBalancesP).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">BSC</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(stakedBalancesB).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={7} />
+                        <Col xs={5}>
+                          <button
+                            className="claim-button"
+                            onClick={() => {
+                              setStakeClicked(false);
+                              setOpen(true);
+                            }}
+                            disabled={
+                              isPendingTxn(pendingTransactions, "unstaking") || isAccountLoading}
+                          >
+                            {txnButtonText(pendingTransactions, "unstaking", "Unstake")}
+                          </button>
+                        </Col>
+                      </Row>
+                    </div>
                   </div>
-                </div>
-              </Grid>
-              <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item"  >
-                <div className="label-container">
-                  <div>
-                    <Row>
-                      <Col md={11} className="label-title">Rewards earned last month</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">ETH</Col>
-                      <Col xs={6} className="label-Frame">{rewardBalancesE? rewardBalancesE : 0}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">POLYGON</Col>
-                      <Col xs={6} className="label-Frame">{rewardBalancesP? rewardBalancesP : 0}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={5} className="label-Frame">BSC</Col>
-                      <Col xs={6} className="label-Frame">{rewardBalancesB? rewardBalancesB : 0}</Col>
-                    </Row>
-                    <Row>
-                      <Col xs={7}/>
-                      <Col xs={5}>
-                        <button
-                          className="claim-button"
-                          onClick={() => {onClaimReward();}}
-                          disabled={
-                            isPendingTxn(pendingTransactions, "airdropping") || !(claimable > 0 ) }
-                        >
-                          {txnButtonText(pendingTransactions, "Claiming", "Claim")}
-                        </button>
-                      </Col>
-                    </Row>
+                </Grid>
+                <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item"  >
+                  <div className="label-container">
+                    <div>
+                      <Row>
+                        <Col md={11} className="label-title">Rewards earned last month</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">ETH</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(rewardBalancesE).toFixed(3) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">POLYGON</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(rewardBalancesP).toFixed(3) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={5} className="label-Frame">BSC</Col>
+                        <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(rewardBalancesB).toFixed(3) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
+                      </Row>
+                      <Row>
+                        <Col xs={7} />
+                        <Col xs={5}>
+                          <button
+                            className="claim-button"
+                            onClick={() => { onClaimReward(); }}
+                            disabled={
+                              isPendingTxn(pendingTransactions, "airdropping") || !(claimable > 0)}
+                          >
+                            {txnButtonText(pendingTransactions, "Claiming", "Claim")}
+                          </button>
+                        </Col>
+                      </Row>
+                    </div>
                   </div>
-                </div>
-              </Grid>
+                </Grid>
+              </>) : (<div style={{ marginLeft: "auto", marginRight: "auto" }}><div className="wallet-menu" id="wallet-menu">
+                {modalButton}
+              </div>
+                <Typography variant="h6">Connect your wallet to stake Spozz token.</Typography></div>)}
             </Grid>
           </Grid>
         </Grid>
