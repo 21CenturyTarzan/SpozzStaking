@@ -11,6 +11,7 @@ import { RootState } from "src/store";
 import { IBaseAddressAsyncThunk, ICalcUserBondDetailsAsyncThunk, IBridgeAsyncThunk } from "./interfaces";
 import { IERC20 } from "src/typechain";
 import { NetworkID } from "src/lib/Bond";
+import { JsonRpcProvider } from "@ethersproject/providers";
 
 export const getBalances = createAsyncThunk(
   "account/getBalances",
@@ -38,62 +39,7 @@ export const getUserBalance = createAsyncThunk(
     let allowance;
     let claimable = null;
 
-    if (true) {
-      const provider2 = new ethers.providers.JsonRpcProvider(
-        "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/polygon/mumbai",
-      );
-      const spozzContract = new ethers.Contract(addresses[80001].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-      let spotBalanceBN = await spozzContract.balanceOf(address);
-      spozzBalancesP = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-      try {
-        const stakingContract = new ethers.Contract(addresses[80001].STAKING_ADDRESS as string, stakingAbi, provider2);
-        let userInfo = await stakingContract.userInfos(address);
-        stakedBalancesP = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
-
-        let userReward = await stakingContract.pendingSpozz(address);
-        rewardBalancesP = ethers.utils.formatUnits(userReward, "gwei");
-      } catch (e) {
-        handleContractError(e);
-      }
-    }
-
-    if (true) {
-      const provider2 = new ethers.providers.JsonRpcProvider(
-        "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/eth/rinkeby",
-      );
-      const spozzContract = new ethers.Contract(addresses[4].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-      let spotBalanceBN = await spozzContract.balanceOf(address);
-      spozzBalancesE = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-      try {
-        const stakingContract = new ethers.Contract(addresses[4].STAKING_ADDRESS as string, stakingAbi, provider2);
-        let userInfo = await stakingContract.userInfos(address);
-        stakedBalancesE = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
-
-        let userReward = await stakingContract.pendingSpozz(address);
-        rewardBalancesE = ethers.utils.formatUnits(userReward, "gwei");
-      } catch (e) {
-        handleContractError(e);
-      }
-    }
-
-    if (true) {
-      const provider2 = new ethers.providers.JsonRpcProvider("https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/bsc/testnet",);
-      const spozzContract = new ethers.Contract(addresses[97].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
-      let spotBalanceBN = await spozzContract.balanceOf(address);
-      spozzBalancesB = ethers.utils.formatUnits(spotBalanceBN, "gwei");
-
-      try {
-        const stakingContract = new ethers.Contract(addresses[97].STAKING_ADDRESS as string, stakingAbi, provider2);
-        let userInfo = await stakingContract.userInfos(address);
-        stakedBalancesB = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
-
-        let userReward = await stakingContract.pendingSpozz(address);
-        rewardBalancesB = ethers.utils.formatUnits(userReward, "gwei");
-      } catch (e) {
-        handleContractError(e);
-      }
-    }
-
+    const [dataE, dataP, dataB] = await Promise.all([loadData(4, address), loadData(80001, address), loadData(97, address)]);
     const curspozzContract = new ethers.Contract(addresses[networkID].SPOZZ_ADDRESS as string, ierc20Abi, provider) as IERC20;
     const curstakingContract = new ethers.Contract(addresses[networkID].STAKING_ADDRESS as string, stakingAbi, provider);
     allowance = await curspozzContract.allowance(address, addresses[networkID].STAKING_ADDRESS);
@@ -101,15 +47,15 @@ export const getUserBalance = createAsyncThunk(
 
     return {
       balances: {
-        spozzBalancesE: spozzBalancesE,
-        spozzBalancesP: spozzBalancesP,
-        spozzBalancesB: spozzBalancesB,
-        stakedBalancesE: stakedBalancesE,
-        stakedBalancesP: stakedBalancesP,
-        stakedBalancesB: stakedBalancesB,
-        rewardBalancesE: rewardBalancesE,
-        rewardBalancesP: rewardBalancesP,
-        rewardBalancesB: rewardBalancesB,
+        spozzBalancesE: dataE.tokenBalance,
+        spozzBalancesP: dataP.tokenBalance,
+        spozzBalancesB: dataB.tokenBalance,
+        stakedBalancesE: dataE.stakedAmount,
+        stakedBalancesP: dataP.stakedAmount,
+        stakedBalancesB: dataB.stakedAmount,
+        rewardBalancesE: dataE.rewardAmount,
+        rewardBalancesP: dataP.rewardAmount,
+        rewardBalancesB: dataB.rewardAmount,
         stakeAllowance: ethers.utils.formatUnits(allowance, "gwei"),
         claimable: ethers.utils.formatUnits(claimable, "gwei"),
       },
@@ -117,8 +63,47 @@ export const getUserBalance = createAsyncThunk(
   },
 );
 
-////////////////////
 
+let loadData = async function (networkId: number, address : string) {
+
+  let provider2 ;
+  if (networkId == 80001) {
+    provider2 = new ethers.providers.JsonRpcProvider(
+      "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/polygon/mumbai",
+    );
+  } else if (networkId == 4) {
+    provider2 = new ethers.providers.JsonRpcProvider(
+      "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/eth/rinkeby",
+    );
+  } else if (networkId == 97) {
+    provider2 = new ethers.providers.JsonRpcProvider(
+      "https://speedy-nodes-nyc.moralis.io/20cea78632b2835b730fdcf4/bsc/testnet",
+    );
+  }
+  const spozzContract = new ethers.Contract(addresses[networkId].SPOZZ_ADDRESS as string, ierc20Abi, provider2) as IERC20;
+  let spotBalanceBN = await spozzContract.balanceOf(address);
+  let spozzBalances = ethers.utils.formatUnits(spotBalanceBN, "gwei");
+  let stakedBalances = null;
+  let rewardBalances = null;
+  try {
+    const stakingContract = new ethers.Contract(addresses[networkId].STAKING_ADDRESS as string, stakingAbi, provider2);
+    let userInfo = await stakingContract.userInfos(address);
+    stakedBalances = ethers.utils.formatUnits(userInfo.stakedAmount, "gwei");
+
+    let userReward = await stakingContract.pendingSpozz(address);
+    rewardBalances = ethers.utils.formatUnits(userReward, "gwei");
+  } catch (e) {
+    handleContractError(e);
+  }
+  return {
+    tokenBalance : spozzBalances,
+    stakedAmount : stakedBalances,
+    rewardAmount : rewardBalances,
+  }
+};
+
+
+////////////////////
 interface IUserAccountDetails {
   wrapping: {
     sohmWrap: number;
