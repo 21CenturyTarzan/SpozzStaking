@@ -13,8 +13,6 @@ import NetworkMenu from "./NetworkMenu.jsx";
 import { NavLink } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import ethereum from "../../assets/tokens/wETH.svg";
-import arbitrum from "../../assets/arbitrum.png";
-import avalanche from "../../assets/tokens/AVAX.svg";
 import polygon from "../../assets/tokens/polygon.svg";
 import binance from "../../assets/binance.png";
 

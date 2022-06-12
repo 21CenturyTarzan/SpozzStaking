@@ -12,10 +12,8 @@ import {
   DialogContentText,
   DialogTitle,
   useMediaQuery,
-  InputAdornment,
 } from "@material-ui/core";
 
-import TabPanel from "../../components/TabPanel";
 import CardHeader from "../../components/CardHeader/CardHeader";
 import CustomInput from "../../components/CustomInput/CustomInput";
 import { NavLink } from "react-router-dom";
@@ -36,19 +34,11 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./stake.scss";
+import ethereum from "../../assets/tokens/wETH.svg";
+import polygon from "../../assets/tokens/polygon.svg";
+import binance from "../../assets/binance.png";
+import spozzcoin from "../../assets/spozzcoin.png";
 
-const airdropUnits = {
-  avatar: 50,
-  nft: 10,
-  specialNFT: 30,
-  whitelist: 30
-}
-
-const spozzAirdropInfo = {
-  totalSupply: 10000,
-  airdropAmount: "10%",
-  // whitelistCo
-}
 
 // export function Airdrop({ srcSwapBalance, setSrcSwapCallback }) {
 export default function Stake() {
@@ -126,6 +116,17 @@ export default function Stake() {
 
     return strValue.replace(",", "'");
   };
+
+  const getNetworkIcon = (idx) => {
+    if (idx == 1)
+      return ethereum;
+    if (idx == 3)
+      return binance;
+    if (idx == 2)
+      return polygon;
+
+    return ethereum;
+  }
 
   const networkId = useAppSelector(state => state.network.networkId);
 
@@ -216,60 +217,56 @@ export default function Stake() {
   };
 
   return (
-    <Grid container className="card-container" >
+    <Grid container className="card-container">
+      <Grid item xs={12} sm={12} md={12} lg={12}>
+        <div className="title-big">
+          <span style={{ justifyContent: "center", display: "flex" }}>Stake Spozz Tokens</span>
+          {!address ? <></> : <div className="title-text2">
+            Stake Spozz Tokens and Earn more rewards. {isAccountLoading ? <span style={{ fontSize: "20px", marginLeft: "50px" }}>( Loading data ... )</span> :
+              (() => {
+                if (networkId == 4 || networkId == 1) {
+                  return (
+                    <span style={{ marginLeft: "50px", textAlign: "center" }}>( Ethereum Network )</span>
+                  )
+                }
+                else if (networkId == 97 || networkId == 56) {
+                  return (
+                    <span style={{ marginLeft: "50px" }}> ( BSC Network )</span>
+                  )
+                }
+                else if (networkId == 137 || networkId == 80001) {
+                  return (
+                    <span style={{  marginLeft: "50px" }}> ( Polygon Network )</span>
+                  )
+                }
+                return null;
+              })()}
+          </div>}
+        </div>
+      </Grid>
+      <hr/>
       <Grid item md={12} lg={8} >
         <Grid container spacing={2}>
           <Grid item xs={12} sm={12} md={12} lg={12} style={{ display: "flex", margin: "20px" }}>
-            <Grid container >
-              <Grid item xs={12} sm={12} md={12} lg={12}>
-                <div className="title-big">
-
-                  <span style={{ textAlign: "center" }}>Stake Spozz Tokens</span>
-                  {!address ? <></> : <div>
-                    {isAccountLoading ? <span style={{ fontSize: "20px", marginLeft: "50px" }}>( Loading data ... )</span> :
-                      (() => {
-                        if (networkId == 4 || networkId == 1) {
-                          return (
-                            <span style={{ fontSize: "20px", marginLeft: "50px", textAlign: "center" }}>( Ethereum Network )</span>
-                          )
-                        }
-                        else if (networkId == 97 || networkId == 56) {
-                          return (
-                            <span style={{ fontSize: "20px", marginLeft: "50px" }}> ( BSC Network )</span>
-                          )
-                        }
-                        else if (networkId == 137 || networkId == 80001) {
-                          return (
-                            <span style={{ fontSize: "20px", marginLeft: "50px" }}> ( Polygon Network )</span>
-                          )
-                        }
-                        return null;
-                      })()}
-                  </div>}
-                </div>
-              </Grid>
+            <Grid container>
               {address ? (<>
                 <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item">
                   <div className="label-container">
                     <div>
-                      {/* {
-                      avatarOwned != undefined ?
-                        <span>Earn: {toFixed(avatarOwned * airdropUnits.avatar, 0)}</span> :
-                        <Skeleton type="text" width={"60px"} height={"100%"} />
-                    } */}
-                      <Row>
-                        <Col md={11} className="label-title">Tokens In your Wallet</Col>
+                      <Row style={{borderBottom: "inset", margin: "0px 5px"}}>
+                        <Col xs={2} className=""><img src={spozzcoin} width="30px" height="40px" /></Col>
+                        <Col xs={10} className="label-title">TOKEN IN YOUR WALLET</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">ETH</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(1)} width="25px" height="25px" style={{marginRight:"10px"}} /> Ethereum</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(spozzBalancesE).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">POLYGON</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(2)} width="25px" height="25px" style={{marginRight:"10px"}}/> Polygon</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(spozzBalancesP).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">BSC</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(3)} width="25px" height="25px" style={{marginRight:"10px"}}/> Binance</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(spozzBalancesB).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
@@ -304,19 +301,20 @@ export default function Stake() {
                 <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item"  >
                   <div className="label-container">
                     <div>
-                      <Row>
-                        <Col xs={11} className="label-title">Token Staked</Col>
+                      <Row style={{borderBottom: "inset", margin: "0px 5px"}}>
+                        <Col xs={2} className=""><img src={spozzcoin} width="30px" height="40px" /></Col>
+                        <Col xs={10} className="label-title" style={{paddingTop: "10px"}}>TOKEN STAKED</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">ETH</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(1)} width="25px" height="25px" style={{marginRight:"10px"}} /> Ethereum</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(stakedBalancesE).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">POLYGON</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(2)} width="25px" height="25px" style={{marginRight:"10px"}} /> Polygon</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(stakedBalancesP).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">BSC</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(3)} width="25px" height="25px" style={{marginRight:"10px"}} /> Binance</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(stakedBalancesB).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
@@ -341,19 +339,20 @@ export default function Stake() {
                 <Grid item xs={12} sm={12} md={12} lg={4} className="grid-item"  >
                   <div className="label-container">
                     <div>
-                      <Row>
-                        <Col md={11} className="label-title">Rewards earned last month</Col>
+                      <Row style={{borderBottom: "inset", margin: "0px 5px"}}>
+                        <Col xs={2} className=""><img src={spozzcoin} width="30px" height="40px" /></Col>
+                        <Col xs={10} className="label-title">REWARDS EARNED LAST MONTH</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">ETH</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(1)} width="25px" height="25px" style={{marginRight:"10px"}} /> Ethereum</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(rewardBalancesE).toFixed(3) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">POLYGON</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(2)} width="25px" height="25px" style={{marginRight:"10px"}} /> Polygon</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(rewardBalancesP).toFixed(3) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
-                        <Col xs={5} className="label-Frame">BSC</Col>
+                        <Col xs={5} className="label-Frame"><img src={getNetworkIcon(3)} width="25px" height="25px" style={{marginRight:"10px"}} /> Binance</Col>
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(rewardBalancesB).toFixed(3) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
