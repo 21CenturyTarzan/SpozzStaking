@@ -43,7 +43,8 @@ function ConnectMenu({ theme }) {
 
   const primaryColor = theme === "light" ? "#49A1F2" : "#F8CC82";
   const buttonStyles =
-    "pending-txn-container" + (isHovering && pendingTransactions.length > 0 ? " hovered-button" : "");
+    "pending-txn-container";
+    // "pending-txn-container" + (isHovering && pendingTransactions.length > 0 ? " hovered-button" : "");
 
   const getEtherscanUrl = txnHash => {
     switch (networkId) {
@@ -93,7 +94,7 @@ function ConnectMenu({ theme }) {
       >
         {buttonText}
       </Button>
-
+{/* 
       <Popper id={id} open={open} anchorEl={anchorEl} placement="bottom-end" transition>
         {({ TransitionProps }) => {
           return (
@@ -115,7 +116,7 @@ function ConnectMenu({ theme }) {
             </Fade>
           );
         }}
-      </Popper>
+      </Popper> */}
     </div>
   );
 }

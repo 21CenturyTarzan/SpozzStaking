@@ -25,6 +25,7 @@ import Messages from "./components/Messages/Messages";
 import MigrationModal from "src/components/Migration/MigrationModal";
 import ChangeNetwork from "./views/ChangeNetwork/ChangeNetwork";
 import { dark as darkTheme } from "./themes/dark.js";
+import fonts from "./themes/fonts.js";
 import { light as lightTheme } from "./themes/light.js";
 import { girth as gTheme } from "./themes/girth.js";
 import "./style.scss";
@@ -252,7 +253,6 @@ function App() {
             </Route>
           </Switch>
         </div>
-
         <MigrationModal open={migrationModalOpen} handleClose={migModalClose} />
       </div>
     </ThemeProvider>

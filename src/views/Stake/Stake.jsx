@@ -39,8 +39,6 @@ import polygon from "../../assets/tokens/polygon.svg";
 import binance from "../../assets/binance.png";
 import spozzcoin from "../../assets/spozzcoin.png";
 
-
-// export function Airdrop({ srcSwapBalance, setSrcSwapCallback }) {
 export default function Stake() {
   const dispatch = useDispatch();
   const { connect, disconnect, connected, web3, provider, address, chainID, chainChanged } = useWeb3Context();
@@ -149,7 +147,8 @@ export default function Stake() {
 
   const onChangeStake = async (action, quantity) => {
     if (isNaN(quantity) || quantity === 0 || quantity === "" || !quantity) {
-      return dispatch(error("Please enter a value!"));
+      setOpen(false);
+      return dispatch(error("Please input staking amount."));
     }
     setOpen(false);
     console.log("chainID------on stake", chainID);
@@ -184,7 +183,7 @@ export default function Stake() {
           </DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
-              <Typography style={{ color: "#fff", fontSize: "20px", margin: "15px 40px" }}>Please Input Spozz Amount.</Typography>
+              <Typography style={{ color: "#fff", fontSize: "20px", margin: "0px 40px 20px 40px" }}>Please Input Spozz Amount.</Typography>
               <FormControl variant="outlined" color="primary" style={{ width: "100%" }}>
                 <OutlinedInput
                   id="amount-input"
@@ -245,7 +244,7 @@ export default function Stake() {
         </div>
       </Grid>
       <hr/>
-      <Grid item md={12} lg={8} >
+      <Grid item className="leftContent" >
         <Grid container spacing={2}>
           <Grid item xs={12} sm={12} md={12} lg={12} style={{ display: "flex", margin: "20px" }}>
             <Grid container>
@@ -270,8 +269,8 @@ export default function Stake() {
                         <Col xs={6} className="label-Frame">{!isAccountLoading ? Number(spozzBalancesB).toFixed(2) : <Skeleton type="text" width={"60px"} height={"100%"} />}</Col>
                       </Row>
                       <Row>
-                        <Col xs={6} />
-                        <Col xs={6}>
+                        <Col xs={7} />
+                        <Col xs={5}>
                           {!hasAllowance() ? (
                             <button
                               className="claim-button"
@@ -379,7 +378,7 @@ export default function Stake() {
           </Grid>
         </Grid>
       </Grid>
-      <Grid item md={12} lg={4} >
+      <Grid item className="rightContent" >
         <Grid container spacing={2} className="descriptionPanel">
           <p className="descriptionText">
             In Spozz Club, staking is used to reward Spozz token holders

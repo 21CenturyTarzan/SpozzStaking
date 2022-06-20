@@ -1,5 +1,13 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat&display=swap');
 
+
+@font-face {
+  font-family: "graphik";
+  src: local("GraphikRegular"),
+    url("../../assets/fonts/GraphikRegular.otf");
+  font-weight: normal;
+}
+
 .card-container {
   padding: 30px;
   border-radius: 40px;
@@ -10,11 +18,26 @@
     padding: 5px;
   }
 
+  .leftContent {
+    width: 70%;
+    @media (max-width: 1550px) {
+      width: 100%;
+    }
+  }
+
+  .rightContent {
+    width: 30%;
+    padding-left: 20px;
+    @media (max-width: 1550px) {
+      width: 100%;
+    }
+  }
+
   .grid-item {
     padding: 5px !important;
     background-color: #FFFFFF;
     border-radius: 20px;
-    max-width: 30%;
+    max-width: 32%;
     margin: 5px;
 
     @media (max-width: 1200px) {
@@ -98,7 +121,7 @@
       @media (max-width: 600px) {
         width: 100%;
       }
-      @media (max-width: 1280px) {
+      @media (max-width: 1920px) {
         width: 90%;
       }
     }
@@ -115,6 +138,7 @@
   }
   .descriptionText {
     font-size: 21px;
+    font-family: graphik, sans-serif;
     margin: 10px;
     @media (max-width: 600px) {
       font-size: 18px;
@@ -132,7 +156,7 @@
 
 
 .title-small {
-  font-family: 'Montserrat';
+  font-family: graphik, sans-serif;
   font-style: normal;
   font-weight: 800;
   font-size: 16px;
@@ -145,7 +169,7 @@
 }
 
 .title-medium {
-  font-family: 'Montserrat';
+  font-family: graphik, sans-serif;
   font-style: normal;
   font-weight: 800;
   font-size: 40px;
@@ -160,10 +184,11 @@
 .title-big {
   margin-top: 15px;
   margin-bottom: 65px;
-  font-family: 'Montserrat';
+  // font-family: 'Montserrat';
+  font-family: graphik, sans-serif;
   font-style: normal;
   font-weight: 800;
-  font-size: 32px;
+  font-size: 40px;
   line-height: 39px;
   letter-spacing: -0.02em;
 }
@@ -228,7 +253,7 @@
 }
 
 .header-title {
-  font-family: 'Montserrat';
+  font-family: graphik, sans-serif;
   background-color: #FFFFFF;
   font-style: normal;
   font-weight: 800;

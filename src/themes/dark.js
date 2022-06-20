@@ -209,8 +209,8 @@ export const dark = responsiveFontSizes(
             fontSize: "24px",
             margin: "20px",
             "&:hover": {
-              background: "rgba(255, 255, 255, 0.0)",
-              backgroundColor: "rgba(255, 255, 255, 0.0)",
+              background: "#46a6f8",
+              backgroundColor: "#46a6f8", 
             },
             "&:active": {
               background: "rgba(255, 255, 255, 0.0)",
