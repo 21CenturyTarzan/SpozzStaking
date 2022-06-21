@@ -1,7 +1,5 @@
 import {
-  Paper,
   Button,
-  Box,
   Grid,
   FormControl,
   OutlinedInput,
@@ -14,13 +12,8 @@ import {
   useMediaQuery,
 } from "@material-ui/core";
 
-import CardHeader from "../../components/CardHeader/CardHeader";
-import CustomInput from "../../components/CustomInput/CustomInput";
-import { NavLink } from "react-router-dom";
-import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { useState, useEffect, useCallback } from "react";
-import { switchNetwork, initializeNetwork } from "../../slices/NetworkSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { Skeleton } from "@material-ui/lab";
 
@@ -28,6 +21,7 @@ import { useWeb3Context } from "../../hooks/web3Context";
 import { useAppSelector } from "src/hooks";
 import { error, info } from "../../slices/MessagesSlice";
 import { loadAccountDetails } from "../../slices/AccountSlice";
+import { switchNetwork, initializeNetwork } from "../../slices/NetworkSlice";
 import { approveSpozz, changeStake, claimSpozz } from "../../slices/StakeThunk";
 import { isPendingTxn, txnButtonText } from "src/slices/PendingTxnsSlice";
 import Row from "react-bootstrap/Row";

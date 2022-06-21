@@ -55,6 +55,22 @@ export const useAddress = () => {
   return address;
 };
 
+
+
+export const changeNetwork = async () => {
+  if(window.ethereum) {
+      console.log("changeNetwork: chainId = ", 4)
+      try {
+          await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: "0x4"}]
+          })
+      } catch(e) {
+      }
+  }
+}
+
+
 const initModal = new Web3Modal({
   // network: "mainnet", // optional
   cacheProvider: true, // optional
@@ -157,6 +173,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
     const connectedAddress = await connectedProvider.getSigner().getAddress();
     const validNetwork = _checkNetwork(chainId);
     if (!validNetwork) {
+      changeNetwork();
       console.error("Wrong network, please switch to mainnet");
       return;
     }

@@ -2,11 +2,6 @@ import { useCallback, useState } from "react";
 import { AppBar, Toolbar, Box, Button, SvgIcon, Link, Typography, Menu } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
-import { ReactComponent as MenuIcon } from "../../assets/icons/hamburger.svg";
-import { ReactComponent as OlympusIcon } from "../../assets/icons/TAZOR_logo.svg";
-import OhmMenu from "./OhmMenu.jsx";
-import ThemeSwitcher from "./ThemeSwitch.jsx";
-import LocaleSwitcher from "./LocaleSwitch.tsx";
 import ConnectMenu from "./ConnectMenu.jsx";
 import "./topbar.scss";
 import NetworkMenu from "./NetworkMenu.jsx";
@@ -81,7 +76,7 @@ const useStyles = makeStyles(theme => ({
     background: "#FFFFFF",
     fontSize: "16px",
     fontWeight: "400",
-    boxShadow: "2px 2px 9px rgba(0, 0, 0, 0.25)",
+    boxShadow: "2px 2px 9px #4786d6",
     borderRadius: "50px",
     minWidth: "150px",
     alignSelf: "center",
@@ -92,7 +87,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: "center",
     background: "#FFFFFF",
     fontSize: "0px",
-    boxShadow: "2px 2px 9px rgba(0, 0, 0, 0.25)",
+    boxShadow: "2px 2px 9px #4786d6",
     borderRadius: "50px",
     alignSelf: "center",
     minHeight: "40px",
