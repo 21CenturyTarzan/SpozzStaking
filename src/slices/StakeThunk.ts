@@ -11,13 +11,8 @@ import {
   IBaseAsyncThunk,
   IActionValueAsyncThunk,
   IChangeApprovalAsyncThunk,
-  IChangeApprovalWithVersionAsyncThunk,
   IJsonRPCError,
 } from "./interfaces";
-import { segmentUA } from "../helpers/userAnalyticHelpers";
-import { IERC20, OlympusStakingv2__factory, OlympusStaking__factory, StakingHelper } from "src/typechain";
-import ReactGA from "react-ga";
-import { SystemUpdateAltSharp } from "@material-ui/icons";
 
 
 export const claimSpozz = createAsyncThunk(

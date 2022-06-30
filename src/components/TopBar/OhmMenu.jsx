@@ -85,10 +85,7 @@ function OhmMenu() {
     );
   });
 
-  const SOHM_ADDRESS = addresses[networkId] && addresses[networkId].TAZ_ADDRESS;
   const SPOZZ_ADDRESS = addresses[networkId] && addresses[networkId].SPOZZ_ADDRESS;
-  const PT_TOKEN_ADDRESS = addresses[networkId] && addresses[networkId].TAZ_ADDRESS;
-  const GOHM_ADDRESS = addresses[networkId] && addresses[networkId].GOHM_ADDRESS;
 
   const handleClick = event => {
     setAnchorEl(anchorEl ? null : event.currentTarget);

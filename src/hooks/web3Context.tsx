@@ -55,8 +55,6 @@ export const useAddress = () => {
   return address;
 };
 
-
-
 export const changeNetwork = async () => {
   if(window.ethereum) {
       console.log("changeNetwork: chainId = ", 4)

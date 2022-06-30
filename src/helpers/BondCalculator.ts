@@ -6,15 +6,9 @@ import { addresses } from "src/constants";
 import { BondCalcContract } from "../typechain";
 
 export const getBondCalculator = (networkID: NetworkID, provider: StaticJsonRpcProvider, v2Bond: boolean) => {
-  if (v2Bond) {
+  if (true) {
     return new ethers.Contract(
       addresses[networkID].BONDINGCALC_V2 as string,
-      BondCalcContractABI,
-      provider,
-    ) as BondCalcContract;
-  } else {
-    return new ethers.Contract(
-      addresses[networkID].BONDINGCALC_ADDRESS as string,
       BondCalcContractABI,
       provider,
     ) as BondCalcContract;

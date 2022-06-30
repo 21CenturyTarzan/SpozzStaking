@@ -28,11 +28,9 @@ export const changeApproval = createAsyncThunk(
 
     const signer = provider.getSigner();
     const tazorContract = new ethers.Contract(addresses[networkID].SPOZZ_ADDRESS as string, ierc20ABI, signer);
-    const tazContract = new ethers.Contract(addresses[networkID].TAZ_ADDRESS as string, ierc20ABI, signer);
 
     let approveTx;
     let tazorAllowance = await tazorContract.allowance(address, addresses[networkID].STAKING_ADDRESS);
-    let tazAllowance = await tazContract.allowance(address, addresses[networkID].STAKING_ADDRESS);
 
     try {
       if (token === "tazor") {
@@ -51,29 +49,12 @@ export const changeApproval = createAsyncThunk(
         }
         // go get fresh allowances
         tazorAllowance = await tazorContract.allowance(address, addresses[networkID].STAKING_ADDRESS);
-      } else if (token === "taz") {
-        approveTx = await tazContract.approve(
-          addresses[networkID].STAKING_ADDRESS,
-          ethers.utils.parseUnits("1000", "gwei"), //ether"),
-        );
-
-        const text = "Approve TAZ";
-        const pendingTxnType = "approve_TAZ";
-        if (approveTx) {
-          dispatch(fetchPendingTxns({ txnHash: approveTx.hash, text, type: pendingTxnType }));
-          await approveTx.wait();
-          dispatch(info("Successfully Approved!"));
-        }
-
-        // go get fresh allowances
-        tazAllowance = await tazContract.allowance(address, addresses[networkID].STAKING_ADDRESS);
       }
 
       return dispatch(
         fetchAccountSuccess({
           staking: {
             tazorStake: Number(ethers.utils.formatUnits(tazorAllowance, "gwei")),
-            tazStake: Number(ethers.utils.formatUnits(tazAllowance, "gwei")), //"ether")),
           },
         }),
       );
